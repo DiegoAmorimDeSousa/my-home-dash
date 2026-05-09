@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Painel Prime - Home</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Montserrat:wght@700;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #0b0e14;
+        --purple: #a855f7;
+        --text: #ffffff;
+      }
+      body {
+        font-family: "Inter", sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        margin: 0;
+        padding: 20px;
+        overflow-y: auto; /* Garante que a página principal role se crescer muito */
+      }
+      .container {
+        max-width: 1600px;
+        margin: 0 auto;
+      }
+      header {
+        margin-bottom: 20px;
+      }
+      header h1 {
+        font-family: "Montserrat";
+        font-size: 1.8rem;
+        margin: 0;
+      }
+
+      .grid-main {
+        display: flex;
+        flex-direction: column;
+        gap: 30px;
+      }
+
+      .module-frame {
+        width: 100%;
+        border: none;
+        display: block;
+        transition: height 0.3s ease; /* Efeito suave quando o conteúdo aumentar */
+      }
+
+      /* Removidas as alturas fixas para permitir o crescimento dinâmico total */
+      #frame-tarefas {
+        min-height: 200px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>PAINEL <span style="color: var(--purple)">PRIME</span></h1>
+      </header>
+
+      <div class="grid-main">
+        <iframe
+          src="tarefas.html"
+          class="module-frame"
+          id="frame-tarefas"
+        ></iframe>
+
+        <iframe
+          src="financas.html"
+          class="module-frame"
+          id="frame-financas"
+        ></iframe>
+
+        <iframe
+          src="futebol.html"
+          class="module-frame"
+          id="frame-futebol"
+        ></iframe>
+      </div>
+    </div>
+
+    <script>
+      // OUVINTE DE REDIMENSIONAMENTO DINÂMICO
+      window.addEventListener(
+        "message",
+        function (e) {
+          // Verifica se a mensagem contém a altura e o ID do frame correspondente
+          if (e.data.height && e.data.id) {
+            var frame = document.getElementById(e.data.id);
+            if (frame) {
+              // Aplica a altura real do conteúdo + uma pequena folga de respiro
+              frame.style.height = e.data.height + 30 + "px";
+            }
+          }
+        },
+        false,
+      );
+    </script>
+  </body>
+</html>

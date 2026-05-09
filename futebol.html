@@ -1,0 +1,464 @@
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Montserrat:wght@800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #0b0e14;
+        --card-bg: #161b22;
+        --purple: #a855f7;
+        --blue: #3b82f6;
+        --green: #238636;
+        --red: #da3633;
+        --text-main: #ffffff;
+        --text-dim: #8b949e;
+        --border: #30363d;
+      }
+
+      body {
+        font-family: "Inter", sans-serif;
+        background-color: var(--bg);
+        color: var(--text-main);
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+      }
+
+      .futebol-container {
+        padding: 20px;
+        box-sizing: border-box;
+      }
+
+      /* TÍTULO DO MÓDULO */
+      .module-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-family: "Montserrat", sans-serif;
+        font-size: 1.2rem;
+        color: var(--purple);
+        margin-bottom: 20px;
+        text-transform: uppercase;
+      }
+
+      /* AREA DE FILTROS - FONTE MAIOR */
+      .config-panel {
+        background: var(--card-bg);
+        padding: 20px;
+        border-radius: 12px;
+        margin-bottom: 25px;
+        border: 1px solid var(--border);
+      }
+      .checkbox-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 12px;
+      }
+      .checkbox-grid label {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        cursor: pointer;
+        background: rgba(255, 255, 255, 0.03);
+        padding: 8px 12px;
+        border-radius: 8px;
+        font-size: 0.85rem; /* Fonte aumentada */
+        color: var(--text-dim);
+        transition: 0.2s;
+      }
+      .checkbox-grid label:hover {
+        background: rgba(168, 85, 247, 0.1);
+        color: #fff;
+      }
+      .checkbox-grid input {
+        width: 16px;
+        height: 16px;
+        accent-color: var(--purple);
+      }
+
+      /* CARDS DE METRICAS - LAYOUT ORGANIZADO */
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 15px;
+        margin-bottom: 25px;
+      }
+      .stat-card {
+        background: var(--card-bg);
+        padding: 20px;
+        border-radius: 14px;
+        text-align: center;
+        border: 1px solid var(--border);
+        border-bottom: 4px solid var(--purple);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+      .stat-card.hidden {
+        display: none !important;
+      }
+      .stat-img {
+        width: 45px;
+        height: 45px;
+        margin-bottom: 10px;
+        object-fit: contain;
+      }
+      .stat-val {
+        font-family: "Montserrat", sans-serif;
+        font-size: 1.5rem;
+        font-weight: 800;
+        display: block;
+        margin-top: 5px;
+      }
+      .stat-label {
+        font-size: 0.65rem;
+        text-transform: uppercase;
+        color: var(--text-dim);
+        font-weight: 700;
+        letter-spacing: 1px;
+      }
+      .stat-time {
+        font-size: 0.7rem;
+        color: var(--purple);
+        font-weight: 600;
+        margin-top: 4px;
+      }
+
+      /* TABELA */
+      .card-table {
+        background: var(--card-bg);
+        border-radius: 16px;
+        padding: 20px;
+        border: 1px solid var(--border);
+        overflow-x: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+        min-width: 850px;
+      }
+      th {
+        text-align: left;
+        color: var(--text-dim);
+        padding: 12px;
+        border-bottom: 2px solid var(--border);
+        font-size: 0.7rem;
+        text-transform: uppercase;
+      }
+      td {
+        padding: 12px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .pos-1 {
+        color: #00ff88;
+        font-weight: 800;
+        font-size: 1.1rem;
+      }
+      .pos-g6 {
+        color: var(--blue);
+        font-weight: 700;
+      }
+      .pos-z6 {
+        color: var(--red);
+        font-weight: 700;
+      }
+
+      .team-cell {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .team-logo {
+        width: 24px;
+        height: 24px;
+        object-fit: contain;
+      }
+      .bold {
+        font-weight: 800;
+        color: #fff;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="futebol-container" id="futebol-content">
+      <div class="module-header">
+        <span>⚽ TABELA DE CLASSIFICAÇÃO</span>
+      </div>
+
+      <div class="config-panel">
+        <div class="checkbox-grid" id="filter-area"></div>
+      </div>
+
+      <div class="stats-grid" id="cards-area"></div>
+
+      <div class="card-table">
+        <table>
+          <thead>
+            <tr>
+              <th colspan="2">#</th>
+              <th>TIME</th>
+              <th>P</th>
+              <th>J</th>
+              <th>V</th>
+              <th>E</th>
+              <th>D</th>
+              <th>GM</th>
+              <th>GS</th>
+              <th>SG</th>
+              <th>%</th>
+              <th>ÚLTIMOS JOGOS</th>
+            </tr>
+          </thead>
+          <tbody id="futebol-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <script>
+      const url_futebol =
+        "https://docs.google.com/spreadsheets/d/e/2PACX-1vTPYLZxLUF_-LbaTOC0lAuArsOgbduUo3VWqc2Q_ZSUvvrgV_xlnnzTCaUgh78k2yxbDyDdT18IKofI/pub?gid=0&single=true&output=csv";
+
+      const metrics = [
+        {
+          id: "v_max",
+          label: "Mais Vitórias",
+          col: 4,
+          type: "max",
+          active: true,
+        },
+        {
+          id: "v_min",
+          label: "Menos Vitórias",
+          col: 4,
+          type: "min",
+          active: true,
+        },
+        {
+          id: "e_max",
+          label: "Mais Empates",
+          col: 5,
+          type: "max",
+          active: true,
+        },
+        {
+          id: "e_min",
+          label: "Menos Empates",
+          col: 5,
+          type: "min",
+          active: true,
+        },
+        {
+          id: "d_max",
+          label: "Mais Derrotas",
+          col: 6,
+          type: "max",
+          active: true,
+        },
+        {
+          id: "d_min",
+          label: "Menos Derrotas",
+          col: 6,
+          type: "min",
+          active: true,
+        },
+        {
+          id: "gm_max",
+          label: "Melhor Ataque",
+          col: 7,
+          type: "max",
+          active: true,
+        },
+        {
+          id: "gm_min",
+          label: "Pior Ataque",
+          col: 7,
+          type: "min",
+          active: true,
+        },
+        {
+          id: "gs_min",
+          label: "Melhor Defesa",
+          col: 8,
+          type: "min",
+          active: true,
+        },
+        {
+          id: "gs_max",
+          label: "Pior Defesa",
+          col: 8,
+          type: "max",
+          active: true,
+        },
+        {
+          id: "sg_max",
+          label: "Maior Saldo",
+          col: 9,
+          type: "max",
+          active: true,
+        },
+        {
+          id: "sg_min",
+          label: "Pior Saldo",
+          col: 9,
+          type: "min",
+          active: true,
+        },
+        {
+          id: "ap_max",
+          label: "Aproveitamento",
+          col: 10,
+          type: "max",
+          active: true,
+        },
+        {
+          id: "ap_min",
+          label: "Pior Aproveitamento",
+          col: 10,
+          type: "min",
+          active: true,
+        },
+        {
+          id: "j_max",
+          label: "Mais Jogos",
+          col: 3,
+          type: "max",
+          active: true,
+        },
+        {
+          id: "j_min",
+          label: "Menos Jogos",
+          col: 3,
+          type: "min",
+          active: true,
+        },
+      ];
+
+      async function initFutebol() {
+        try {
+          const resp = await fetch(url_futebol);
+          const data = await resp.text();
+          const rows = data
+            .split("\n")
+            .map((r) => r.split(","))
+            .slice(1);
+
+          const tbody = document.getElementById("futebol-body");
+          let results = {};
+          metrics.forEach(
+            (m) =>
+              (results[m.id] = {
+                val: m.type === "max" ? -Infinity : Infinity,
+              }),
+          );
+
+          rows.forEach((cols, i) => {
+            if (cols.length < 15) return;
+            const pos = i + 1;
+
+            // Lógica de Tendência de Posição
+            const posAnt = parseInt(cols[17]); // Posição anterior da coluna 17
+            let trendIcon = "";
+
+            if (!isNaN(posAnt)) {
+              const diferenca = posAnt - pos; // Cálculo da variação
+
+              if (diferenca > 0) {
+                // Subiu (ex: era 5º virou 3º -> diferenca = 2)
+                trendIcon = `<span style="color: #00ff88; font-size: 0.7rem; font-weight: bold; margin-left: 5px;">▲${diferenca}</span>`;
+              } else if (diferenca < 0) {
+                // Desceu (ex: era 2º virou 4º -> diferenca = -2)
+                trendIcon = `<span style="color: #ff4444; font-size: 0.7rem; font-weight: bold; margin-left: 5px;">▼${Math.abs(diferenca)}</span>`;
+              } else {
+                // Manteve (diferenca = 0)
+                trendIcon = `<span style="color: #8b949e; font-size: 0.7rem; margin-left: 5px;">●</span>`;
+              }
+            }
+
+            let cl =
+              pos === 1
+                ? "pos-1"
+                : pos <= 6
+                  ? "pos-g6"
+                  : pos > rows.length - 6
+                    ? "pos-z6"
+                    : "";
+
+            tbody.innerHTML += `
+        <tr>
+            <td class="${cl}">${pos}</td>
+            <td style="width: 20px; text-align: center;">${trendIcon}</td>
+            <td><div class="team-cell"><img src="${cols[0]}" class="team-logo"><span>${cols[1]}</span></div></td>
+            <td class="bold">${cols[2]}</td>
+            <td>${cols[3]}</td><td>${cols[4]}</td><td>${cols[5]}</td><td>${cols[6]}</td>
+            <td>${cols[7]}</td><td>${cols[8]}</td><td>${cols[9]}</td>
+            <td style="color:var(--purple); font-weight:bold">${cols[10]}</td>
+            <td style="font-size:0.7rem; opacity:0.6; letter-spacing: 1px">${cols[14]}</td>
+        </tr>`;
+
+            metrics.forEach((m) => {
+              let v =
+                parseFloat(cols[m.col]?.replace("%", "").replace(",", ".")) ||
+                0;
+              if (
+                (m.type === "max" && v > results[m.id].val) ||
+                (m.type === "min" && v < results[m.id].val)
+              ) {
+                results[m.id] = {
+                  val: v,
+                  time: cols[1],
+                  logo: cols[0],
+                  isPct: cols[m.col]?.includes("%"),
+                };
+              }
+            });
+          });
+          renderDashboard(results);
+          sendHeight();
+        } catch (e) {
+          console.error(e);
+        }
+      }
+
+      function renderDashboard(results) {
+        const fArea = document.getElementById("filter-area");
+        const cArea = document.getElementById("cards-area");
+        metrics.forEach((m) => {
+          const d = results[m.id];
+          fArea.innerHTML += `<label><input type="checkbox" ${m.active ? "checked" : ""} onchange="toggleCard('${m.id}')">${m.label}</label>`;
+          cArea.innerHTML += `
+                <div class="stat-card ${m.active ? "" : "hidden"}" id="card-${m.id}">
+                    <span class="stat-label">${m.label}</span>
+                    <img src="${d.logo}" class="stat-img">
+                    <span class="stat-val">${d.val}${d.isPct ? "%" : ""}</span>
+                    <span class="stat-time">${d.time}</span>
+                </div>`;
+        });
+      }
+
+      function toggleCard(id) {
+        document.getElementById(`card-${id}`).classList.toggle("hidden");
+        sendHeight();
+      }
+
+      function sendHeight() {
+        setTimeout(() => {
+          const height =
+            document.getElementById("futebol-content").scrollHeight;
+          window.parent.postMessage(
+            { height: height, id: "frame-futebol" },
+            "*",
+          );
+        }, 150);
+      }
+
+      initFutebol();
+    </script>
+  </body>
+</html>

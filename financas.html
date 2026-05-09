@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Montserrat:wght@800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #0b0e14;
+        --card-bg: #161b22;
+        --purple: #a855f7;
+        --blue: #3b82f6;
+        --green: #238636;
+        --orange: #f59e0b;
+        --text-main: #ffffff;
+        --text-dim: #8b949e;
+        --border: #30363d;
+      }
+
+      body {
+        font-family: "Inter", sans-serif;
+        background-color: var(--bg);
+        color: var(--text-main);
+        margin: 0;
+        padding: 10px;
+      }
+
+      .fin-grid {
+        display: grid;
+        grid-template-columns: 1fr 1.6fr;
+        gap: 20px;
+      }
+
+      .fin-card {
+        background: var(--card-bg);
+        border-radius: 16px;
+        padding: 20px;
+        border: 1px solid var(--border);
+      }
+
+      /* BOX DE VALOR TOTAL */
+      .total-box {
+        background: #0d1117;
+        padding: 15px;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        text-align: center;
+        margin-bottom: 20px;
+      }
+
+      .total-label {
+        font-size: 0.6rem;
+        color: var(--text-dim);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+      .total-value {
+        font-size: 1.8rem;
+        font-weight: 800;
+        color: var(--text-main);
+        margin-top: 5px;
+      }
+
+      /* GRÁFICO DE ROSCA (CSS) */
+      .donut-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
+      }
+
+      .donut {
+        width: 140px;
+        height: 140px;
+        border-radius: 50%;
+        /* As porcentagens aqui podem ser controladas via JS no futuro */
+        background: conic-gradient(
+          var(--blue) 0% 35%,
+          var(--orange) 35% 55%,
+          var(--purple) 55% 75%,
+          var(--green) 75% 100%
+        );
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+      }
+
+      /* Buraco da rosca */
+      .donut::after {
+        content: "";
+        width: 100px;
+        height: 100px;
+        background: var(--card-bg);
+        border-radius: 50%;
+        position: absolute;
+      }
+
+      .legend {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        font-size: 0.65rem;
+        color: var(--text-dim);
+      }
+
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+      .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+      }
+
+      /* TABELA DE GASTOS */
+      .transacoes-header {
+        font-size: 0.75rem;
+        font-weight: 700;
+        margin-bottom: 15px;
+        text-transform: uppercase;
+        color: var(--purple);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.8rem;
+      }
+      td {
+        padding: 12px 8px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .date-cell {
+        color: var(--text-dim);
+        font-size: 0.7rem;
+        width: 60px;
+      }
+      .desc-cell {
+        font-weight: 500;
+      }
+      .val-cell {
+        text-align: right;
+        font-weight: 700;
+      }
+
+      /* TAGS DE CATEGORIA */
+      .tag {
+        padding: 3px 8px;
+        border-radius: 6px;
+        font-size: 0.6rem;
+        font-weight: 700;
+        text-transform: uppercase;
+      }
+      .tag-blue {
+        background: rgba(59, 130, 246, 0.15);
+        color: var(--blue);
+      }
+      .tag-orange {
+        background: rgba(245, 158, 11, 0.15);
+        color: var(--orange);
+      }
+      .tag-purple {
+        background: rgba(168, 85, 247, 0.15);
+        color: var(--purple);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="fin-grid">
+      <div class="fin-card donut-container">
+        <div class="total-box">
+          <div class="total-label">Gastos Mensais</div>
+          <div class="total-value">R$ 4.325,90</div>
+        </div>
+
+        <div class="donut"></div>
+
+        <div class="legend">
+          <div class="legend-item">
+            <span class="dot" style="background: var(--blue)"></span> Contas
+          </div>
+          <div class="legend-item">
+            <span class="dot" style="background: var(--orange)"></span> Mercado
+          </div>
+          <div class="legend-item">
+            <span class="dot" style="background: var(--purple)"></span> Lazer
+          </div>
+          <div class="legend-item">
+            <span class="dot" style="background: var(--green)"></span> Outros
+          </div>
+        </div>
+      </div>
+
+      <div class="fin-card">
+        <div class="transacoes-header">Últimas Movimentações</div>
+        <table>
+          <tbody id="lista-gastos">
+            <tr>
+              <td class="date-cell">09/05</td>
+              <td class="desc-cell">Conta de Luz</td>
+              <td><span class="tag tag-blue">Contas</span></td>
+              <td class="val-cell">R$ 320,00</td>
+            </tr>
+            <tr>
+              <td class="date-cell">08/05</td>
+              <td class="desc-cell">Supermercado</td>
+              <td><span class="tag tag-orange">Mercado</span></td>
+              <td class="val-cell">R$ 542,10</td>
+            </tr>
+            <tr>
+              <td class="date-cell">07/05</td>
+              <td class="desc-cell">Assinatura Netflix</td>
+              <td><span class="tag tag-purple">Lazer</span></td>
+              <td class="val-cell">R$ 55,90</td>
+            </tr>
+            <tr>
+              <td class="date-cell">06/05</td>
+              <td class="desc-cell">Restaurante Japa</td>
+              <td><span class="tag tag-purple">Lazer</span></td>
+              <td class="val-cell">R$ 180,00</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Montserrat:wght@800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #0b0e14;
+        --card-bg: #161b22;
+        --purple: #a855f7;
+        --green: #00ff88;
+        --text: #ffffff;
+        --dim: #8b949e;
+        --border: #30363d;
+      }
+      body {
+        font-family: "Inter", sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        margin: 0;
+        padding: 15px;
+        overflow: hidden;
+      }
+
+      .header {
+        font-family: "Montserrat", sans-serif;
+        font-size: 1.1rem;
+        color: var(--purple);
+        font-weight: 800;
+        margin-bottom: 20px;
+        text-transform: uppercase;
+      }
+
+      .tasks-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        margin-bottom: 20px;
+      }
+      .user-column {
+        background: var(--card-bg);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 18px;
+      }
+      .user-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 15px;
+        font-weight: 800;
+        font-size: 0.8rem;
+        letter-spacing: 1px;
+      }
+
+      .task-item {
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 10px;
+        padding: 12px 16px;
+        margin-bottom: 8px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border: 1px solid transparent;
+        transition: 0.3s;
+      }
+      .task-item.done {
+        border-color: var(--green);
+        background: rgba(0, 255, 136, 0.05);
+        opacity: 0.8;
+      }
+      .task-item.pending-sync {
+        opacity: 0.5;
+        border-color: orange;
+      } /* Estado visual de carregando */
+
+      .task-name {
+        font-size: 0.85rem;
+        font-weight: 600;
+      }
+      .task-time {
+        font-size: 0.7rem;
+        color: var(--dim);
+        display: block;
+        margin-top: 2px;
+      }
+      .checkbox {
+        width: 20px;
+        height: 20px;
+        cursor: pointer;
+        accent-color: var(--green);
+      }
+
+      .stats-wrapper {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+      .stats-subgrid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+      }
+      .stat-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border);
+        padding: 10px 5px;
+        border-radius: 12px;
+        text-align: center;
+        border-bottom: 3px solid transparent;
+      }
+      .stat-label {
+        display: block;
+        font-size: 0.55rem;
+        color: var(--dim);
+        text-transform: uppercase;
+        font-weight: 800;
+        margin-bottom: 4px;
+      }
+      .stat-val {
+        font-size: 0.9rem;
+        font-weight: 800;
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">📋 DASHBOARD DE TAREFAS</div>
+
+    <div class="tasks-grid">
+      <div class="user-column" style="border-top: 4px solid var(--green)">
+        <div class="user-header">
+          <span style="color: var(--green)">DIEGO</span>
+          <span id="p-diego">0%</span>
+        </div>
+        <div id="list-diego"></div>
+      </div>
+      <div class="user-column" style="border-top: 4px solid var(--purple)">
+        <div class="user-header">
+          <span style="color: var(--purple)">BEATRIZ</span>
+          <span id="p-bia">0%</span>
+        </div>
+        <div id="list-bia"></div>
+      </div>
+    </div>
+
+    <div class="stats-wrapper">
+      <div class="stats-subgrid" id="stats-d">
+        <div class="stat-card" style="border-bottom-color: var(--green)">
+          <span class="stat-label">Hoje</span
+          ><span class="stat-val" id="d-hoje">0/0</span>
+        </div>
+        <div class="stat-card" style="border-bottom-color: var(--green)">
+          <span class="stat-label">Semana</span
+          ><span class="stat-val" id="d-sem">0</span>
+        </div>
+        <div class="stat-card" style="border-bottom-color: var(--green)">
+          <span class="stat-label">Mês</span
+          ><span class="stat-val" id="d-mes">0</span>
+        </div>
+        <div class="stat-card" style="border-bottom-color: var(--green)">
+          <span class="stat-label">Top</span
+          ><span class="stat-val" style="font-size: 0.65rem" id="d-top">-</span>
+        </div>
+      </div>
+      <div class="stats-subgrid" id="stats-b">
+        <div class="stat-card" style="border-bottom-color: var(--purple)">
+          <span class="stat-label">Hoje</span
+          ><span class="stat-val" id="b-hoje">0/0</span>
+        </div>
+        <div class="stat-card" style="border-bottom-color: var(--purple)">
+          <span class="stat-label">Semana</span
+          ><span class="stat-val" id="b-sem">0</span>
+        </div>
+        <div class="stat-card" style="border-bottom-color: var(--purple)">
+          <span class="stat-label">Mês</span
+          ><span class="stat-val" id="b-mes">0</span>
+        </div>
+        <div class="stat-card" style="border-bottom-color: var(--purple)">
+          <span class="stat-label">Top</span
+          ><span class="stat-val" style="font-size: 0.65rem" id="b-top">-</span>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const URL_LOGS =
+        "https://docs.google.com/spreadsheets/d/e/2PACX-1vSK1XbGFpL5g5BUK6Dz2S7nZVRzgs-6iaPKHq7hQ0M0i_59Z2ur3-GP95xxSJLomymamLHyLYomc_7m/pub?gid=495982494&single=true&output=csv";
+      const WEB_APP_URL =
+        "https://script.google.com/macros/s/AKfycbxZDNq7MoIRgeBvzbaslBjpeMfY-Vm4gw5yTr8O1zgENE7zucykP7AFCJlE4Dg3RtVY/exec"; // Certifique-se de que esta é a URL correta do seu Apps Script
+
+      let isUpdating = false;
+
+      function sendHeight() {
+        const height = document.body.scrollHeight;
+        window.parent.postMessage({ height: height, id: "frame-tarefas" }, "*");
+      }
+
+      async function loadTasks() {
+        if (isUpdating) return; // Não carrega dados se estivermos no meio de um clique
+
+        try {
+          const resp = await fetch(`${URL_LOGS}&t=${new Date().getTime()}`);
+          const text = await resp.text();
+          const rows = text
+            .split("\n")
+            .map((r) => r.split(","))
+            .slice(1);
+
+          const now = new Date();
+          const todayStr = now.toLocaleDateString("pt-BR");
+
+          let hD = "",
+            hB = "";
+          let counts = {
+            dH: 0,
+            dT: 0,
+            bH: 0,
+            bT: 0,
+            ds: 0,
+            dm: 0,
+            bs: 0,
+            bm: 0,
+            df: {},
+            bf: {},
+          };
+
+          rows.forEach((cols) => {
+            if (cols.length < 5) return;
+            const [data, dono, nome, hora, status] = [
+              cols[0].trim(),
+              cols[1].trim(),
+              cols[2].trim(),
+              cols[3].trim(),
+              cols[4].trim().toUpperCase(),
+            ];
+            const isDone = status === "OK";
+
+            // Contabilidade Geral
+            if (isDone) {
+              const parts = data.split("/");
+              const taskDate = new Date(parts[2], parts[1] - 1, parts[0]);
+              if (dono === "Diego") {
+                if (taskDate.getMonth() === now.getMonth()) counts.dm++;
+                counts.df[nome] = (counts.df[nome] || 0) + 1;
+              } else {
+                if (taskDate.getMonth() === now.getMonth()) counts.bm++;
+                counts.bf[nome] = (counts.bf[nome] || 0) + 1;
+              }
+            }
+
+            // Tarefas de Hoje
+            if (data === todayStr) {
+              const html = `
+                        <div class="task-item ${isDone ? "done" : ""}">
+                            <div><span class="task-name">${nome}</span><span class="task-time">${hora}</span></div>
+                            <input type="checkbox" class="checkbox" ${isDone ? "checked disabled" : ""} onclick="markDone(this, '${nome}', '${dono}')">
+                        </div>`;
+              if (dono === "Diego") {
+                hD += html;
+                counts.dT++;
+                if (isDone) counts.dH++;
+              } else {
+                hB += html;
+                counts.bT++;
+                if (isDone) counts.bH++;
+              }
+            }
+          });
+
+          document.getElementById("list-diego").innerHTML =
+            hD || '<span class="task-time">Sem tarefas</span>';
+          document.getElementById("list-bia").innerHTML =
+            hB || '<span class="task-time">Sem tarefas</span>';
+
+          updateUI(counts);
+          setTimeout(sendHeight, 300);
+        } catch (e) {
+          console.error("Erro ao carregar:", e);
+        }
+      }
+
+      function updateUI(c) {
+        // Percentuais
+        document.getElementById("p-diego").innerText =
+          Math.round((c.dH / c.dT) * 100 || 0) + "%";
+        document.getElementById("p-bia").innerText =
+          Math.round((c.bH / c.bT) * 100 || 0) + "%";
+
+        // Stats Diego
+        document.getElementById("d-hoje").innerText = `${c.dH}/${c.dT}`;
+        document.getElementById("d-sem").innerText = c.dm; // Usando mês como exemplo simplificado
+        document.getElementById("d-mes").innerText = c.dm;
+        document.getElementById("d-top").innerText =
+          Object.entries(c.df).sort((a, b) => b[1] - a[1])[0]?.[0] || "-";
+
+        // Stats Bia
+        document.getElementById("b-hoje").innerText = `${c.bH}/${c.bT}`;
+        document.getElementById("b-sem").innerText = c.bm;
+        document.getElementById("b-mes").innerText = c.bm;
+        document.getElementById("b-top").innerText =
+          Object.entries(c.bf).sort((a, b) => b[1] - a[1])[0]?.[0] || "-";
+      }
+
+      async function markDone(el, task, owner) {
+        isUpdating = true; // Bloqueia o recarregamento automático temporariamente
+        el.disabled = true;
+        const item = el.parentElement;
+        item.classList.add("done");
+        item.classList.add("pending-sync"); // Visual de "sincronizando"
+
+        try {
+          // 1. Envia para a planilha
+          await fetch(
+            `${WEB_APP_URL}?task=${encodeURIComponent(task)}&owner=${owner}`,
+            { mode: "no-cors" },
+          );
+
+          // 2. Aguarda 5 segundos (tempo para o Google atualizar o CSV público)
+          setTimeout(async () => {
+            isUpdating = false;
+            await loadTasks();
+          }, 5000);
+        } catch (e) {
+          console.error("Erro ao salvar:", e);
+          isUpdating = false;
+          el.disabled = false;
+          item.classList.remove("done", "pending-sync");
+        }
+      }
+
+      loadTasks();
+      setInterval(loadTasks, 30000); // Atualiza a cada 30 segundos
+    </script>
+  </body>
+</html>
