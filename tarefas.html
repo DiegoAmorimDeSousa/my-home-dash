@@ -207,6 +207,7 @@
         try {
           const resp = await fetch(`${URL_LOGS}&t=${new Date().getTime()}`);
           const text = await resp.text();
+          console.log("text", text);
           const rows = text
             .split("\n")
             .map((r) => r.split(","))
@@ -255,7 +256,7 @@
             }
 
             // Tarefas de Hoje
-            if (data === todayStr) {
+            if (data.split(" ")[0] === todayStr) {
               const html = `
                         <div class="task-item ${isDone ? "done" : ""}">
                             <div><span class="task-name">${nome}</span><span class="task-time">${hora}</span></div>
