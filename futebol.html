@@ -1,11 +1,13 @@
 <!doctype html>
-<html lang="pt-br">
+<html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
+    <title>Módulo de Futebol</title>
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Montserrat:wght@800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Montserrat:wght@700;800&display=swap"
       rel="stylesheet"
     />
+
     <style>
       :root {
         --bg: #0b0e14;
@@ -25,15 +27,35 @@
         color: var(--text-main);
         margin: 0;
         padding: 0;
-        overflow: hidden;
       }
 
-      .futebol-container {
+      /* ESTILIZAÇÃO DO SCROLLBAR GLOBAL DO MODULO (Para navegadores baseados em Webkit) */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: var(--bg);
+      }
+      ::-webkit-scrollbar-thumb {
+        background: var(--border);
+        border-radius: 10px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: var(--purple);
+      }
+
+      /* Para Firefox */
+      * {
+        scrollbar-width: thin;
+        scrollbar-color: var(--border) var(--bg);
+      }
+
+      #futebol-content {
         padding: 20px;
         box-sizing: border-box;
       }
 
-      /* TÍTULO DO MÓDULO */
       .module-header {
         display: flex;
         align-items: center;
@@ -45,7 +67,6 @@
         text-transform: uppercase;
       }
 
-      /* AREA DE FILTROS - FONTE MAIOR */
       .config-panel {
         background: var(--card-bg);
         padding: 20px;
@@ -66,7 +87,7 @@
         background: rgba(255, 255, 255, 0.03);
         padding: 8px 12px;
         border-radius: 8px;
-        font-size: 0.85rem; /* Fonte aumentada */
+        font-size: 0.85rem;
         color: var(--text-dim);
         transition: 0.2s;
       }
@@ -80,7 +101,6 @@
         accent-color: var(--purple);
       }
 
-      /* CARDS DE METRICAS - LAYOUT ORGANIZADO */
       .stats-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
@@ -129,13 +149,13 @@
         margin-top: 4px;
       }
 
-      /* TABELA */
       .card-table {
         background: var(--card-bg);
         border-radius: 16px;
         padding: 20px;
         border: 1px solid var(--border);
         overflow-x: auto;
+        margin-bottom: 40px;
       }
       table {
         width: 100%;
@@ -155,7 +175,6 @@
         padding: 12px;
         border-bottom: 1px solid var(--border);
       }
-
       .pos-1 {
         color: #00ff88;
         font-weight: 800;
@@ -169,7 +188,6 @@
         color: var(--red);
         font-weight: 700;
       }
-
       .team-cell {
         display: flex;
         align-items: center;
@@ -184,12 +202,154 @@
         font-weight: 800;
         color: #fff;
       }
+
+      /* MATA-MATA ESPELHADO PROFISSIONAL */
+      .tournament-wrapper {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        gap: 20px;
+        align-items: center;
+        background: rgba(255, 255, 255, 0.01);
+        padding: 20px;
+        border-radius: 16px;
+        border: 1px solid var(--border);
+        overflow-x: auto;
+        min-width: 1150px;
+      }
+
+      .bracket-side {
+        display: flex;
+        gap: 30px;
+        align-items: center;
+      }
+
+      .bracket-side.left {
+        justify-content: flex-start;
+      }
+      .bracket-side.right {
+        justify-content: flex-end;
+        flex-direction: row-reverse;
+      }
+
+      .bracket-round {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-around;
+        height: 680px;
+        min-width: 210px;
+      }
+
+      .center-stage {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-width: 260px;
+        gap: 40px;
+        padding: 0 10px;
+      }
+
+      .round-title-node {
+        font-family: "Montserrat", sans-serif;
+        font-size: 0.7rem;
+        color: var(--text-dim);
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        text-align: center;
+        margin-bottom: 8px;
+      }
+
+      .matchup {
+        background: var(--card-bg);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        position: relative;
+      }
+
+      .matchup-team {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.8rem;
+        color: var(--text-dim);
+        height: 28px;
+      }
+
+      .matchup-team.winner {
+        color: #00ff88;
+        font-weight: 700;
+      }
+
+      .team-info-block {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+      }
+
+      .bracket-logo {
+        width: 20px;
+        height: 20px;
+        object-fit: contain;
+        flex-shrink: 0;
+      }
+
+      .scores-display {
+        display: flex;
+        gap: 4px;
+      }
+
+      .score-box {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--border);
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        min-width: 16px;
+        text-align: center;
+        color: var(--text-main);
+        font-weight: 600;
+      }
+
+      /* Estilo para a caixinha de pênaltis / desempate */
+      .score-box.penalty-box {
+        background: var(--purple);
+        color: #fff;
+        border-color: var(--purple);
+        font-size: 0.65rem;
+        font-weight: 700;
+      }
+
+      .btn-action {
+        background: var(--purple);
+        color: #fff;
+        font-family: "Inter", sans-serif;
+        font-weight: 600;
+        font-size: 0.8rem;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: 0.2s;
+      }
+      .btn-action:hover {
+        opacity: 0.9;
+        transform: scale(1.02);
+      }
     </style>
   </head>
   <body>
-    <div class="futebol-container" id="futebol-content">
+    <div id="futebol-content">
       <div class="module-header">
-        <span>⚽ TABELA DE CLASSIFICAÇÃO</span>
+        <span>⚽ Tabela de Classificação</span>
       </div>
 
       <div class="config-panel">
@@ -202,8 +362,9 @@
         <table>
           <thead>
             <tr>
-              <th colspan="2">#</th>
-              <th>TIME</th>
+              <th>#</th>
+              <th></th>
+              <th>Time</th>
               <th>P</th>
               <th>J</th>
               <th>V</th>
@@ -213,17 +374,66 @@
               <th>GS</th>
               <th>SG</th>
               <th>%</th>
-              <th>ÚLTIMOS JOGOS</th>
+              <th>Últimos Jogos</th>
             </tr>
           </thead>
           <tbody id="futebol-body"></tbody>
         </table>
       </div>
+
+      <div
+        style="
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-top: 40px;
+          margin-bottom: 20px;
+        "
+      >
+        <div class="module-header" style="margin-bottom: 0">
+          <span>🏆 Chaveamento Copa Mata-Mata (32 Times)</span>
+        </div>
+        <button class="btn-action" onclick="iniciarNovoTorneio32()">
+          Gerar Novo Chaveamento
+        </button>
+      </div>
+
+      <div class="tournament-wrapper">
+        <div class="bracket-side left">
+          <div class="bracket-round" id="round-left-32"></div>
+          <div class="bracket-round" id="round-left-16"></div>
+          <div class="bracket-round" id="round-left-8"></div>
+          <div class="bracket-round" id="round-left-4"></div>
+        </div>
+
+        <div class="center-stage">
+          <div
+            id="round-center-final-title"
+            class="round-title-node"
+            style="margin-bottom: -25px"
+          >
+            GRANDE FINAL
+          </div>
+          <div id="round-center-final" style="width: 100%"></div>
+          <div id="podium-area"></div>
+        </div>
+
+        <div class="bracket-side right">
+          <div class="bracket-round" id="round-right-32"></div>
+          <div class="bracket-round" id="round-right-16"></div>
+          <div class="bracket-round" id="round-right-8"></div>
+          <div class="bracket-round" id="round-right-4"></div>
+        </div>
+      </div>
     </div>
 
     <script>
+      const url_macro_apps_script =
+        "https://script.google.com/macros/s/AKfycbyzVZOl7vbrtlVtre_12NFn-UqkT0zAJuEN_u865x6gDMnY6jesiNTZ44thrlOqb6hoTw/exec";
       const url_futebol =
         "https://docs.google.com/spreadsheets/d/e/2PACX-1vTPYLZxLUF_-LbaTOC0lAuArsOgbduUo3VWqc2Q_ZSUvvrgV_xlnnzTCaUgh78k2yxbDyDdT18IKofI/pub?gid=0&single=true&output=csv";
+
+      let logoDatabase = {};
 
       const metrics = [
         {
@@ -324,13 +534,7 @@
           type: "min",
           active: true,
         },
-        {
-          id: "j_max",
-          label: "Mais Jogos",
-          col: 3,
-          type: "max",
-          active: true,
-        },
+        { id: "j_max", label: "Mais Jogos", col: 3, type: "max", active: true },
         {
           id: "j_min",
           label: "Menos Jogos",
@@ -350,6 +554,9 @@
             .slice(1);
 
           const tbody = document.getElementById("futebol-body");
+          if (!tbody) return;
+          tbody.innerHTML = "";
+
           let results = {};
           metrics.forEach(
             (m) =>
@@ -360,24 +567,25 @@
 
           rows.forEach((cols, i) => {
             if (cols.length < 15) return;
-            const pos = i + 1;
 
-            // Lógica de Tendência de Posição
-            const posAnt = parseInt(cols[17]); // Posição anterior da coluna 17
+            const logoUrl = cols[0] ? cols[0].trim() : "";
+            const timeNome = cols[1] ? cols[1].trim() : "";
+            if (timeNome) {
+              logoDatabase[timeNome] = logoUrl;
+            }
+
+            const pos = i + 1;
+            const posAnt = parseInt(cols[17]);
             let trendIcon = "";
 
             if (!isNaN(posAnt)) {
-              const diferenca = posAnt - pos; // Cálculo da variação
-
+              const diferenca = posAnt - pos;
               if (diferenca > 0) {
-                // Subiu (ex: era 5º virou 3º -> diferenca = 2)
-                trendIcon = `<span style="color: #00ff88; font-size: 0.7rem; font-weight: bold; margin-left: 5px;">▲${diferenca}</span>`;
+                trendIcon = `<span style="color: #00ff88; font-size: 0.75rem; font-weight: bold;">▲${diferenca}</span>`;
               } else if (diferenca < 0) {
-                // Desceu (ex: era 2º virou 4º -> diferenca = -2)
-                trendIcon = `<span style="color: #ff4444; font-size: 0.7rem; font-weight: bold; margin-left: 5px;">▼${Math.abs(diferenca)}</span>`;
+                trendIcon = `<span style="color: var(--red); font-size: 0.75rem; font-weight: bold;">▼${Math.abs(diferenca)}</span>`;
               } else {
-                // Manteve (diferenca = 0)
-                trendIcon = `<span style="color: #8b949e; font-size: 0.7rem; margin-left: 5px;">●</span>`;
+                trendIcon = `<span style="color: var(--text-dim); font-size: 0.75rem;">●</span>`;
               }
             }
 
@@ -391,16 +599,16 @@
                     : "";
 
             tbody.innerHTML += `
-        <tr>
-            <td class="${cl}">${pos}</td>
-            <td style="width: 20px; text-align: center;">${trendIcon}</td>
-            <td><div class="team-cell"><img src="${cols[0]}" class="team-logo"><span>${cols[1]}</span></div></td>
-            <td class="bold">${cols[2]}</td>
-            <td>${cols[3]}</td><td>${cols[4]}</td><td>${cols[5]}</td><td>${cols[6]}</td>
-            <td>${cols[7]}</td><td>${cols[8]}</td><td>${cols[9]}</td>
-            <td style="color:var(--purple); font-weight:bold">${cols[10]}</td>
-            <td style="font-size:0.7rem; opacity:0.6; letter-spacing: 1px">${cols[14]}</td>
-        </tr>`;
+            <tr>
+              <td class="${cl}">${pos}</td>
+              <td style="width: 25px; text-align: center;">${trendIcon}</td>
+              <td><div class="team-cell"><img src="${logoUrl}" class="team-logo"><span>${timeNome}</span></div></td>
+              <td class="bold">${cols[2]}</td>
+              <td>${cols[3]}</td><td>${cols[4]}</td><td>${cols[5]}</td><td>${cols[6]}</td>
+              <td>${cols[7]}</td><td>${cols[8]}</td><td>${cols[9]}</td>
+              <td style="color:var(--purple); font-weight:700">${cols[10]}</td>
+              <td style="font-size:0.75rem; color:var(--text-dim); font-weight: 500;">${cols[14]}</td>
+            </tr>`;
 
             metrics.forEach((m) => {
               let v =
@@ -412,50 +620,237 @@
               ) {
                 results[m.id] = {
                   val: v,
-                  time: cols[1],
-                  logo: cols[0],
+                  time: timeNome,
+                  logo: logoUrl,
                   isPct: cols[m.col]?.includes("%"),
                 };
               }
             });
           });
+
           renderDashboard(results);
-          sendHeight();
+          carregarEExibirMataMataDoSheets();
         } catch (e) {
-          console.error(e);
+          console.error("Erro na carga do Futebol:", e);
         }
       }
 
       function renderDashboard(results) {
         const fArea = document.getElementById("filter-area");
         const cArea = document.getElementById("cards-area");
+        if (!fArea || !cArea) return;
+
+        fArea.innerHTML = "";
+        cArea.innerHTML = "";
+
         metrics.forEach((m) => {
           const d = results[m.id];
-          fArea.innerHTML += `<label><input type="checkbox" ${m.active ? "checked" : ""} onchange="toggleCard('${m.id}')">${m.label}</label>`;
+          if (!d || !d.logo) return;
+
+          fArea.innerHTML += `
+          <label><input type="checkbox" ${m.active ? "checked" : ""} onchange="toggleCard('${m.id}')"> ${m.label}</label>
+        `;
+
           cArea.innerHTML += `
-                <div class="stat-card ${m.active ? "" : "hidden"}" id="card-${m.id}">
-                    <span class="stat-label">${m.label}</span>
-                    <img src="${d.logo}" class="stat-img">
-                    <span class="stat-val">${d.val}${d.isPct ? "%" : ""}</span>
-                    <span class="stat-time">${d.time}</span>
-                </div>`;
+          <div class="stat-card ${m.active ? "" : "hidden"}" id="card-${m.id}">
+              <span class="stat-label">${m.label}</span>
+              <img src="${d.logo}" class="stat-img">
+              <span class="stat-val">${d.val}${d.isPct ? "%" : ""}</span>
+              <span class="stat-time">${d.time}</span>
+          </div>`;
         });
       }
 
       function toggleCard(id) {
-        document.getElementById(`card-${id}`).classList.toggle("hidden");
+        const card = document.getElementById(`card-${id}`);
+        if (card) card.classList.toggle("hidden");
         sendHeight();
+      }
+
+      async function iniciarNovoTorneio32() {
+        if (url_macro_apps_script === "SUA_URL_DO_WEB_APP_AQUI") {
+          alert(
+            "Configure a URL do seu Apps Script no arquivo para usar este recurso!",
+          );
+          return;
+        }
+        if (
+          confirm(
+            "Deseja sortear um novo chaveamento de 32 times direto na planilha?",
+          )
+        ) {
+          await fetch(`${url_macro_apps_script}?action=gerar`);
+          setTimeout(initFutebol, 1500);
+        }
+      }
+
+      async function carregarEExibirMataMataDoSheets() {
+        try {
+          if (url_macro_apps_script === "SUA_URL_DO_WEB_APP_AQUI") return;
+
+          const resp = await fetch(
+            `${url_macro_apps_script}?t=${new Date().getTime()}`,
+          );
+          const confrontosBrutos = await resp.json();
+
+          if (!confrontosBrutos || confrontosBrutos.length === 0) return;
+
+          const f32 = confrontosBrutos.filter((r) => r[0] === "Fase de 32");
+          const oit = confrontosBrutos.filter((r) => r[0] === "Oitavas");
+          const qua = confrontosBrutos.filter((r) => r[0] === "Quartas");
+          const sem = confrontosBrutos.filter((r) => r[0] === "Semifinal");
+          const fin = confrontosBrutos.filter((r) => r[0] === "Final");
+
+          distribuirFase("Fase de 32", f32, "round-left-32", "round-right-32");
+          distribuirFase("Oitavas", oit, "round-left-16", "round-right-16");
+          distribuirFase("Quartas", qua, "round-left-8", "round-right-8");
+          distribuirFase("Semifinal", sem, "round-left-4", "round-right-4");
+
+          const areaFinal = document.getElementById("round-center-final");
+          const areaPodio = document.getElementById("podium-area");
+
+          if (areaFinal && fin.length > 0) {
+            const c = fin[0];
+            const confObj = {
+              t1: c[1] || "Aguardando...",
+              t2: c[2] || "Aguardando...",
+              ida1: c[3],
+              ida2: c[4],
+              volta1: c[5],
+              volta2: c[6],
+              vencedor: c[8] || "",
+            };
+            areaFinal.innerHTML = buildMatchHTML(confObj);
+
+            if (c[8]) {
+              areaPodio.innerHTML = `
+              <div style="text-align:center; border:2px dashed #00ff88; padding:15px; border-radius:12px; background:rgba(0,255,136,0.03); margin-top: 15px;">
+                <span style="font-size:0.65rem; display:block; color:var(--text-dim); font-weight:700; letter-spacing:1px;">🏆 CAMPEÃO</span>
+                <span style="font-family:'Montserrat', sans-serif; font-size:1.1rem; display:block; font-weight:800; color:#00ff88; margin-top:5px;">${c[8]}</span>
+              </div>`;
+            } else {
+              areaPodio.innerHTML = "";
+            }
+          }
+
+          sendHeight();
+        } catch (err) {
+          console.error("Erro ao estruturar chaves do mata-mata:", err);
+        }
+      }
+
+      function distribuirFase(
+        nomeFase,
+        listaConfrontos,
+        idContainerEsquerdo,
+        idContainerDireito,
+      ) {
+        const containerEsq = document.getElementById(idContainerEsquerdo);
+        const containerDir = document.getElementById(idContainerDireito);
+
+        if (!containerEsq || !containerDir) return;
+
+        let htmlEsq = `<div class="round-title-node">${nomeFase}</div>`;
+        let htmlDir = `<div class="round-title-node">${nomeFase}</div>`;
+
+        const metade = Math.ceil(listaConfrontos.length / 2);
+
+        listaConfrontos.forEach((c, index) => {
+          const confObj = {
+            t1: c[1] || "Aguardando...",
+            t2: c[2] || "Aguardando...",
+            ida1: c[3],
+            ida2: c[4],
+            volta1: c[5],
+            volta2: c[6],
+            vencedor: c[8] || "",
+          };
+
+          if (index < metade) {
+            htmlEsq += buildMatchHTML(confObj);
+          } else {
+            htmlDir += buildMatchHTML(confObj);
+          }
+        });
+
+        containerEsq.innerHTML = htmlEsq;
+        containerDir.innerHTML = htmlDir;
+      }
+
+      function buildMatchHTML(conf) {
+        const logo1 = logoDatabase[conf.t1] || "";
+        const logo2 = logoDatabase[conf.t2] || "";
+
+        const imgTag1 = logo1
+          ? `<img src="${logo1}" class="bracket-logo">`
+          : `<div style="width:20px"></div>`;
+        const imgTag2 = logo2
+          ? `<img src="${logo2}" class="bracket-logo">`
+          : `<div style="width:20px"></div>`;
+
+        // ANALISE E TRATAMENTO DE EMPATE NO AGREGADO DOS DOIS JOGOS
+        const ida1Int = parseInt(conf.ida1);
+        const ida2Int = parseInt(conf.ida2);
+        const volta1Int = parseInt(conf.volta1);
+        const volta2Int = parseInt(conf.volta2);
+
+        let totalTime1 =
+          (isNaN(ida1Int) ? 0 : ida1Int) + (isNaN(volta1Int) ? 0 : volta1Int);
+        let totalTime2 =
+          (isNaN(ida2Int) ? 0 : ida2Int) + (isNaN(volta2Int) ? 0 : volta2Int);
+
+        // Só ativa a regra se ambos os jogos possuírem valores numéricos preenchidos
+        const jogosConcluidos =
+          !isNaN(ida1Int) &&
+          !isNaN(ida2Int) &&
+          !isNaN(volta1Int) &&
+          !isNaN(volta2Int);
+        const houveEmpateAgregado =
+          jogosConcluidos && totalTime1 === totalTime2;
+
+        const renderTimeLinha = (nome, logoTag, ida, volta, souTime1) => {
+          const isWinner = conf.vencedor === nome && nome !== "Aguardando...";
+          const validIda = ida !== undefined && ida !== "" ? ida : "-";
+          const validVolta = volta !== undefined && volta !== "" ? volta : "-";
+
+          return `
+          <div class="matchup-team ${isWinner ? "winner" : ""}">
+            <div class="team-info-block">
+              ${logoTag}
+              <span style="${nome === "Aguardando..." ? "opacity:0.3" : ""}">${nome}</span>
+            </div>
+            ${
+              nome !== "Aguardando..."
+                ? `
+              <div class="scores-display">
+                <div class="score-box">${validIda}</div>
+                <div class="score-box">${validVolta}</div>
+                ${houveEmpateAgregado ? `<div class="score-box penalty-box">${souTime1 ? totalTime1 : totalTime2}</div>` : ""}
+              </div>
+            `
+                : ""
+            }
+          </div>`;
+        };
+
+        return `
+        <div class="matchup">
+          ${renderTimeLinha(conf.t1, imgTag1, conf.ida1, conf.volta1, true)}
+          <div style="height:1px; background:var(--border); margin:1px 0;"></div>
+          ${renderTimeLinha(conf.t2, imgTag2, conf.ida2, conf.volta2, false)}
+        </div>`;
       }
 
       function sendHeight() {
         setTimeout(() => {
-          const height =
-            document.getElementById("futebol-content").scrollHeight;
+          const el = document.getElementById("futebol-content");
+          if (!el) return;
+          const height = el.scrollHeight;
           window.parent.postMessage(
             { height: height, id: "frame-futebol" },
             "*",
           );
-        }, 150);
+        }, 300);
       }
 
       initFutebol();
