@@ -2,6 +2,7 @@
 <html lang="pt-br">
   <head>
     <meta charset="UTF-8" />
+    <title>Dashboard de Tarefas</title>
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Montserrat:wght@800&display=swap"
       rel="stylesheet"
@@ -12,6 +13,8 @@
         --card-bg: #161b22;
         --purple: #a855f7;
         --green: #00ff88;
+        --red: #ff4a5a;
+        --orange: #ff9f43;
         --text: #ffffff;
         --dim: #8b949e;
         --border: #30363d;
@@ -22,9 +25,8 @@
         color: var(--text);
         margin: 0;
         padding: 15px;
-        overflow: hidden;
+        overflow-x: hidden;
       }
-
       .header {
         font-family: "Montserrat", sans-serif;
         font-size: 1.1rem;
@@ -33,7 +35,6 @@
         margin-bottom: 20px;
         text-transform: uppercase;
       }
-
       .tasks-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -54,7 +55,6 @@
         font-size: 0.8rem;
         letter-spacing: 1px;
       }
-
       .task-item {
         background: rgba(255, 255, 255, 0.03);
         border-radius: 10px;
@@ -74,8 +74,7 @@
       .task-item.pending-sync {
         opacity: 0.5;
         border-color: orange;
-      } /* Estado visual de carregando */
-
+      }
       .task-name {
         font-size: 0.85rem;
         font-weight: 600;
@@ -92,11 +91,11 @@
         cursor: pointer;
         accent-color: var(--green);
       }
-
       .stats-wrapper {
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 20px;
+        margin-bottom: 20px;
       }
       .stats-subgrid {
         display: grid;
@@ -127,6 +126,130 @@
         text-overflow: ellipsis;
         white-space: nowrap;
       }
+
+      .history-section {
+        background: var(--card-bg);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 15px;
+        margin-top: 15px;
+      }
+      .history-title {
+        font-size: 0.75rem;
+        font-weight: 800;
+        color: var(--dim);
+        margin-bottom: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      .history-grid-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+      .user-history-block {
+        display: flex;
+        flex-direction: column;
+      }
+      .user-history-name {
+        font-size: 0.75rem;
+        font-weight: 700;
+        margin-bottom: 6px;
+      }
+      .contribution-graph {
+        display: flex;
+        gap: 3px;
+        flex-wrap: wrap;
+      }
+      .graph-cube {
+        width: 11px;
+        height: 11px;
+        background-color: #1b1f24;
+        border-radius: 2px;
+        position: relative;
+      }
+      .graph-cube.level-1 {
+        background-color: #0e4429;
+      }
+      .graph-cube.level-2 {
+        background-color: #006d32;
+      }
+      .graph-cube.level-3 {
+        background-color: #26a641;
+      }
+      .graph-cube.level-4 {
+        background-color: #39d353;
+      }
+
+      .graph-cube:hover::after {
+        content: attr(data-info);
+        position: absolute;
+        bottom: 15px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #000;
+        color: #fff;
+        padding: 4px 6px;
+        font-size: 10px;
+        border-radius: 4px;
+        white-space: nowrap;
+        z-index: 10;
+        border: 1px solid var(--border);
+      }
+
+      .insights-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        margin-top: 15px;
+      }
+      .insight-box {
+        background: var(--card-bg);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 15px;
+      }
+      .insight-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: rgba(255, 255, 255, 0.02);
+        border-radius: 10px;
+        padding: 10px 14px;
+        margin-top: 8px;
+        font-size: 0.8rem;
+        border-left: 4px solid transparent;
+      }
+      .insight-row.streak {
+        border-left-color: var(--green);
+      }
+      .insight-row.procrastinate {
+        border-left-color: var(--red);
+      }
+      .insight-row.never {
+        border-left-color: var(--orange);
+      }
+
+      .insight-label-text {
+        font-weight: 700;
+        white-space: nowrap;
+      }
+      .insight-task-name {
+        font-weight: 600;
+        color: #fff;
+        margin: 0 10px;
+        flex-grow: 1;
+        text-align: left;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: normal;
+        word-break: break-word;
+      }
+      .insight-count {
+        font-weight: 800;
+        font-size: 0.85rem;
+        white-space: nowrap;
+      }
     </style>
   </head>
   <body>
@@ -152,38 +275,127 @@
     <div class="stats-wrapper">
       <div class="stats-subgrid" id="stats-d">
         <div class="stat-card" style="border-bottom-color: var(--green)">
-          <span class="stat-label">Hoje</span
-          ><span class="stat-val" id="d-hoje">0/0</span>
+          <span class="stat-label">Hoje</span>
+          <span class="stat-val" id="d-hoje">0/0</span>
         </div>
         <div class="stat-card" style="border-bottom-color: var(--green)">
-          <span class="stat-label">Semana</span
-          ><span class="stat-val" id="d-sem">0</span>
+          <span class="stat-label">Semana</span>
+          <span class="stat-val" id="d-sem">0</span>
         </div>
         <div class="stat-card" style="border-bottom-color: var(--green)">
-          <span class="stat-label">Mês</span
-          ><span class="stat-val" id="d-mes">0</span>
+          <span class="stat-label">Mês</span>
+          <span class="stat-val" id="d-mes">0</span>
         </div>
         <div class="stat-card" style="border-bottom-color: var(--green)">
-          <span class="stat-label">Top</span
-          ><span class="stat-val" style="font-size: 0.65rem" id="d-top">-</span>
+          <span class="stat-label">Top</span>
+          <span class="stat-val" style="font-size: 0.65rem" id="d-top">-</span>
         </div>
       </div>
       <div class="stats-subgrid" id="stats-b">
         <div class="stat-card" style="border-bottom-color: var(--purple)">
-          <span class="stat-label">Hoje</span
-          ><span class="stat-val" id="b-hoje">0/0</span>
+          <span class="stat-label">Hoje</span>
+          <span class="stat-val" id="b-hoje">0/0</span>
         </div>
         <div class="stat-card" style="border-bottom-color: var(--purple)">
-          <span class="stat-label">Semana</span
-          ><span class="stat-val" id="b-sem">0</span>
+          <span class="stat-label">Semana</span>
+          <span class="stat-val" id="b-sem">0</span>
         </div>
         <div class="stat-card" style="border-bottom-color: var(--purple)">
-          <span class="stat-label">Mês</span
-          ><span class="stat-val" id="b-mes">0</span>
+          <span class="stat-label">Mês</span>
+          <span class="stat-val" id="b-mes">0</span>
         </div>
         <div class="stat-card" style="border-bottom-color: var(--purple)">
-          <span class="stat-label">Top</span
-          ><span class="stat-val" style="font-size: 0.65rem" id="b-top">-</span>
+          <span class="stat-label">Top</span>
+          <span class="stat-val" style="font-size: 0.65rem" id="b-top">-</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="history-section">
+      <div class="history-title">
+        📊 Histórico de Conclusão (Últimos 30 dias)
+      </div>
+      <div class="history-grid-container">
+        <div class="user-history-block">
+          <div class="user-history-name" style="color: var(--green)">Diego</div>
+          <div class="contribution-graph" id="graph-diego"></div>
+        </div>
+        <div class="user-history-block">
+          <div class="user-history-name" style="color: var(--purple)">
+            Beatriz
+          </div>
+          <div class="contribution-graph" id="graph-bia"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="insights-grid">
+      <div class="insight-box">
+        <div class="history-title" style="color: var(--green)">
+          💡 Insights do Diego
+        </div>
+        <div class="insight-row streak">
+          <span class="insight-label-text">🔥 Maior Sequência:</span>
+          <span class="insight-task-name" id="d-streak-name"
+            >Carregando...</span
+          >
+          <span
+            class="insight-count"
+            style="color: var(--green)"
+            id="d-streak-val"
+            >0d</span
+          >
+        </div>
+        <div class="insight-row procrastinate">
+          <span class="insight-label-text">⚠️ Dias sem realizar:</span>
+          <span class="insight-task-name" id="d-proc-name">Carregando...</span>
+          <span class="insight-count" style="color: var(--red)" id="d-proc-val"
+            >0d</span
+          >
+        </div>
+        <div class="insight-row never">
+          <span class="insight-label-text">❄️ Nunca Feito:</span>
+          <span class="insight-task-name" id="d-never-name">Nenhuma</span>
+          <span
+            class="insight-count"
+            style="color: var(--orange)"
+            id="d-never-val"
+            >-</span
+          >
+        </div>
+      </div>
+      <div class="insight-box">
+        <div class="history-title" style="color: var(--purple)">
+          💡 Insights da Beatriz
+        </div>
+        <div class="insight-row streak">
+          <span class="insight-label-text">🔥 Maior Sequência:</span>
+          <span class="insight-task-name" id="b-streak-name"
+            >Carregando...</span
+          >
+          <span
+            class="insight-count"
+            style="color: var(--green)"
+            id="b-streak-val"
+            >0d</span
+          >
+        </div>
+        <div class="insight-row procrastinate">
+          <span class="insight-label-text">⚠️ Dias sem realizar:</span>
+          <span class="insight-task-name" id="b-proc-name">Carregando...</span>
+          <span class="insight-count" style="color: var(--red)" id="b-proc-val"
+            >0d</span
+          >
+        </div>
+        <div class="insight-row never">
+          <span class="insight-label-text">❄️ Nunca Feito:</span>
+          <span class="insight-task-name" id="b-never-name">Nenhuma</span>
+          <span
+            class="insight-count"
+            style="color: var(--orange)"
+            id="b-never-val"
+            >-</span
+          >
         </div>
       </div>
     </div>
@@ -192,7 +404,7 @@
       const URL_LOGS =
         "https://docs.google.com/spreadsheets/d/e/2PACX-1vSK1XbGFpL5g5BUK6Dz2S7nZVRzgs-6iaPKHq7hQ0M0i_59Z2ur3-GP95xxSJLomymamLHyLYomc_7m/pub?gid=495982494&single=true&output=csv";
       const WEB_APP_URL =
-        "https://script.google.com/macros/s/AKfycbxZDNq7MoIRgeBvzbaslBjpeMfY-Vm4gw5yTr8O1zgENE7zucykP7AFCJlE4Dg3RtVY/exec"; // Certifique-se de que esta é a URL correta do seu Apps Script
+        "https://script.google.com/macros/s/AKfycbxZDNq7MoIRgeBvzbaslBjpeMfY-Vm4gw5yTr8O1zgENE7zucykP7AFCJlE4Dg3RtVY/exec";
 
       let isUpdating = false;
 
@@ -202,7 +414,7 @@
       }
 
       async function loadTasks() {
-        if (isUpdating) return; // Não carrega dados se estivermos no meio de um clique
+        if (isUpdating) return;
 
         try {
           const resp = await fetch(`${URL_LOGS}&t=${new Date().getTime()}`);
@@ -214,6 +426,8 @@
 
           const now = new Date();
           const todayStr = now.toLocaleDateString("pt-BR");
+          const umDiaEmMs = 24 * 60 * 60 * 1000;
+          const seteDiasAtras = new Date(now.getTime() - 7 * umDiaEmMs);
 
           let hD = "",
             hB = "";
@@ -228,11 +442,17 @@
             bm: 0,
             df: {},
             bf: {},
+            historyDiego: {},
+            historyBia: {},
+            allTasksDiego: {},
+            allTasksBia: {},
+            todayTasksDiego: [],
+            todayTasksBia: [],
           };
 
           rows.forEach((cols) => {
             if (cols.length < 5) return;
-            const [data, dono, nome, hora, status] = [
+            const [dataRaw, dono, nome, hora, status] = [
               cols[0].trim(),
               cols[1].trim(),
               cols[2].trim(),
@@ -240,35 +460,72 @@
               cols[4].trim().toUpperCase(),
             ];
             const isDone = status === "OK";
+            const apenasDataStr = dataRaw.split(" ")[0];
+            const parts = apenasDataStr.split("/");
+            if (parts.length < 3) return;
 
-            // Contabilidade Geral
-            if (isDone) {
-              const parts = data.split("/");
-              const taskDate = new Date(parts[2], parts[1] - 1, parts[0]);
+            const taskDate = new Date(
+              parseInt(parts[2]),
+              parseInt(parts[1]) - 1,
+              parseInt(parts[0]),
+            );
+
+            if (!isNaN(taskDate.getTime())) {
+              const formatoChave = apenasDataStr;
+
               if (dono === "Diego") {
-                if (taskDate.getMonth() === now.getMonth()) counts.dm++;
-                counts.df[nome] = (counts.df[nome] || 0) + 1;
-              } else {
-                if (taskDate.getMonth() === now.getMonth()) counts.bm++;
-                counts.bf[nome] = (counts.bf[nome] || 0) + 1;
+                if (!counts.allTasksDiego[nome])
+                  counts.allTasksDiego[nome] = {};
+                counts.allTasksDiego[nome][formatoChave] = isDone;
+              } else if (dono === "Beatriz") {
+                if (!counts.allTasksBia[nome]) counts.allTasksBia[nome] = {};
+                counts.allTasksBia[nome][formatoChave] = isDone;
+              }
+
+              if (isDone) {
+                if (
+                  taskDate.getMonth() === now.getMonth() &&
+                  taskDate.getFullYear() === now.getFullYear()
+                ) {
+                  if (dono === "Diego") counts.dm++;
+                  else if (dono === "Beatriz") counts.bm++;
+                }
+
+                if (taskDate >= seteDiasAtras && taskDate <= now) {
+                  if (dono === "Diego") counts.ds++;
+                  else if (dono === "Beatriz") counts.bs++;
+                }
+
+                if (dono === "Diego") {
+                  counts.historyDiego[formatoChave] =
+                    (counts.historyDiego[formatoChave] || 0) + 1;
+                  counts.df[nome] = (counts.df[nome] || 0) + 1;
+                } else if (dono === "Beatriz") {
+                  counts.historyBia[formatoChave] =
+                    (counts.historyBia[formatoChave] || 0) + 1;
+                  counts.bf[nome] = (counts.bf[nome] || 0) + 1;
+                }
               }
             }
 
-            // Tarefas de Hoje
-            if (data.split(" ")[0] === todayStr) {
+            if (apenasDataStr === todayStr) {
               const html = `
-                        <div class="task-item ${isDone ? "done" : ""}">
-                            <div><span class="task-name">${nome}</span><span class="task-time">${hora}</span></div>
-                            <input type="checkbox" class="checkbox" ${isDone ? "checked disabled" : ""} onclick="markDone(this, '${nome}', '${dono}')">
-                        </div>`;
+                            <div class="task-item ${isDone ? "done" : ""}">
+                                <div><span class="task-name">${nome}</span><span class="task-time">${hora}</span></div>
+                                <input type="checkbox" class="checkbox" ${isDone ? "checked disabled" : ""} onclick="markDone(this, '${nome}', '${dono}')">
+                            </div>`;
               if (dono === "Diego") {
                 hD += html;
                 counts.dT++;
                 if (isDone) counts.dH++;
-              } else {
+                if (!counts.todayTasksDiego.includes(nome))
+                  counts.todayTasksDiego.push(nome);
+              } else if (dono === "Beatriz") {
                 hB += html;
                 counts.bT++;
                 if (isDone) counts.bH++;
+                if (!counts.todayTasksBia.includes(nome))
+                  counts.todayTasksBia.push(nome);
               }
             }
           });
@@ -279,6 +536,20 @@
             hB || '<span class="task-time">Sem tarefas</span>';
 
           updateUI(counts);
+          renderGitHubGraph("graph-diego", counts.historyDiego);
+          renderGitHubGraph("graph-bia", counts.historyBia);
+
+          calculateAdvancedInsights(
+            counts.allTasksDiego,
+            counts.todayTasksDiego,
+            "d",
+          );
+          calculateAdvancedInsights(
+            counts.allTasksBia,
+            counts.todayTasksBia,
+            "b",
+          );
+
           setTimeout(sendHeight, 300);
         } catch (e) {
           console.error("Erro ao carregar:", e);
@@ -286,42 +557,185 @@
       }
 
       function updateUI(c) {
-        // Percentuais
         document.getElementById("p-diego").innerText =
           Math.round((c.dH / c.dT) * 100 || 0) + "%";
         document.getElementById("p-bia").innerText =
           Math.round((c.bH / c.bT) * 100 || 0) + "%";
 
-        // Stats Diego
         document.getElementById("d-hoje").innerText = `${c.dH}/${c.dT}`;
-        document.getElementById("d-sem").innerText = c.dm; // Usando mês como exemplo simplificado
+        document.getElementById("d-sem").innerText = c.ds;
         document.getElementById("d-mes").innerText = c.dm;
         document.getElementById("d-top").innerText =
           Object.entries(c.df).sort((a, b) => b[1] - a[1])[0]?.[0] || "-";
 
-        // Stats Bia
         document.getElementById("b-hoje").innerText = `${c.bH}/${c.bT}`;
-        document.getElementById("b-sem").innerText = c.bm;
+        document.getElementById("b-sem").innerText = c.bs;
         document.getElementById("b-mes").innerText = c.bm;
         document.getElementById("b-top").innerText =
           Object.entries(c.bf).sort((a, b) => b[1] - a[1])[0]?.[0] || "-";
       }
 
+      function renderGitHubGraph(elementId, historyData) {
+        const container = document.getElementById(elementId);
+        container.innerHTML = "";
+        const totalDias = 30;
+        const hoje = new Date();
+
+        for (let i = totalDias - 1; i >= 0; i--) {
+          const dataAnalise = new Date(
+            hoje.getTime() - i * 24 * 60 * 60 * 1000,
+          );
+          const dia = String(dataAnalise.getDate()).padStart(2, "0");
+          const mes = String(dataAnalise.getMonth() + 1).padStart(2, "0");
+          const ano = dataAnalise.getFullYear();
+          const chaveData = `${dia}/${mes}/${ano}`;
+
+          const tarefasConcluidas = historyData[chaveData] || 0;
+
+          const cube = document.createElement("div");
+          cube.classList.add("graph-cube");
+          cube.setAttribute(
+            "data-info",
+            `${chaveData}: ${tarefasConcluidas} concluída(s)`,
+          );
+
+          if (tarefasConcluidas > 0 && tarefasConcluidas <= 2)
+            cube.classList.add("level-1");
+          else if (tarefasConcluidas > 2 && tarefasConcluidas <= 4)
+            cube.classList.add("level-2");
+          else if (tarefasConcluidas > 4 && tarefasConcluidas <= 6)
+            cube.classList.add("level-3");
+          else if (tarefasConcluidas > 6) cube.classList.add("level-4");
+
+          container.appendChild(cube);
+        }
+      }
+
+      // NOVO MOTOR COM SUPORTE A EMPATES E LISTAS ACUMULADAS
+      function calculateAdvancedInsights(tasksMap, todayTasksList, prefix) {
+        let maxStreakValue = 0;
+        let streakTasks = [];
+
+        let maxNaoRealizadoValue = 0;
+        let naoRealizadoTasks = [];
+
+        let nuncaFeitas = [];
+        const hoje = new Date();
+
+        // 1. Coleta todas as tarefas de hoje que NUNCA tiveram um "OK" no histórico
+        todayTasksList.forEach((taskName) => {
+          let possuiAlgumOk = false;
+          if (tasksMap[taskName]) {
+            Object.values(tasksMap[taskName]).forEach((val) => {
+              if (val === true) possuiAlgumOk = true;
+            });
+          }
+          if (!possuiAlgumOk) {
+            nuncaFeitas.push(taskName);
+          }
+        });
+
+        // 2. Avalia Sequências e Dias sem Realizar gerenciando empates matemáticos
+        Object.entries(tasksMap).forEach(([taskName, datesLog]) => {
+          let primeiraDataValida = null;
+          let ultimaDataConcluida = null;
+
+          for (let i = 60; i >= 0; i--) {
+            const dAlvo = new Date(hoje.getTime() - i * 24 * 60 * 60 * 1000);
+            const chave = `${String(dAlvo.getDate()).padStart(2, "0")}/${String(dAlvo.getMonth() + 1).padStart(2, "0")}/${dAlvo.getFullYear()}`;
+
+            if (datesLog[chave] === true) {
+              if (!primeiraDataValida)
+                primeiraDataValida = new Date(dAlvo.getTime());
+              ultimaDataConcluida = new Date(dAlvo.getTime());
+            }
+          }
+
+          if (primeiraDataValida) {
+            let currentStreak = 0;
+            let highestStreak = 0;
+
+            let dataInteracao = new Date(primeiraDataValida.getTime());
+            while (dataInteracao <= hoje) {
+              const chaveDia = `${String(dataInteracao.getDate()).padStart(2, "0")}/${String(dataInteracao.getMonth() + 1).padStart(2, "0")}/${dataInteracao.getFullYear()}`;
+              const foiFeita = datesLog[chaveDia] === true;
+
+              if (foiFeita) {
+                currentStreak++;
+                if (currentStreak > highestStreak)
+                  highestStreak = currentStreak;
+              } else {
+                currentStreak = 0;
+              }
+              dataInteracao.setTime(
+                dataInteracao.getTime() + 24 * 60 * 60 * 1000,
+              );
+            }
+
+            // Gerencia empates na maior sequência
+            if (highestStreak > 0) {
+              if (highestStreak > maxStreakValue) {
+                maxStreakValue = highestStreak;
+                streakTasks = [taskName]; // Novo recorde reinicia a lista
+              } else if (highestStreak === maxStreakValue) {
+                if (!streakTasks.includes(taskName)) streakTasks.push(taskName); // Empate adiciona à lista
+              }
+            }
+
+            // Gerencia empates nos dias sem realizar
+            if (ultimaDataConcluida) {
+              const diferencaMs =
+                hoje.setHours(0, 0, 0, 0) -
+                ultimaDataConcluida.setHours(0, 0, 0, 0);
+              const diferencaDias = Math.floor(
+                diferencaMs / (1000 * 60 * 60 * 24),
+              );
+
+              if (diferencaDias > 0) {
+                if (diferencaDias > maxNaoRealizadoValue) {
+                  maxNaoRealizadoValue = diferencaDias;
+                  naoRealizadoTasks = [taskName]; // Novo recorde reinicia a lista
+                } else if (diferencaDias === maxNaoRealizadoValue) {
+                  if (!naoRealizadoTasks.includes(taskName))
+                    naoRealizadoTasks.push(taskName); // Empate adiciona à lista
+                }
+              }
+            }
+          }
+        });
+
+        // Injeta os dados formatando arrays com separação por vírgula para visualização limpa
+        document.getElementById(`${prefix}-streak-name`).innerText =
+          streakTasks.length > 0 ? streakTasks.join(", ") : "-";
+        document.getElementById(`${prefix}-streak-val`).innerText =
+          maxStreakValue + "d";
+
+        document.getElementById(`${prefix}-proc-name`).innerText =
+          naoRealizadoTasks.length > 0 ? naoRealizadoTasks.join(", ") : "-";
+        document.getElementById(`${prefix}-proc-val`).innerText =
+          maxNaoRealizadoValue + "d";
+
+        if (nuncaFeitas.length > 0) {
+          document.getElementById(`${prefix}-never-name`).innerText =
+            nuncaFeitas.join(", ");
+          document.getElementById(`${prefix}-never-val`).innerText = "Pendente";
+        } else {
+          document.getElementById(`${prefix}-never-name`).innerText = "Nenhuma";
+          document.getElementById(`${prefix}-never-val`).innerText = "-";
+        }
+      }
+
       async function markDone(el, task, owner) {
-        isUpdating = true; // Bloqueia o recarregamento automático temporariamente
+        isUpdating = true;
         el.disabled = true;
         const item = el.parentElement;
-        item.classList.add("done");
-        item.classList.add("pending-sync"); // Visual de "sincronizando"
+        item.classList.add("done", "pending-sync");
 
         try {
-          // 1. Envia para a planilha
           await fetch(
             `${WEB_APP_URL}?task=${encodeURIComponent(task)}&owner=${owner}`,
             { mode: "no-cors" },
           );
-
-          // 2. Aguarda 5 segundos (tempo para o Google atualizar o CSV público)
           setTimeout(async () => {
             isUpdating = false;
             await loadTasks();
@@ -335,7 +749,7 @@
       }
 
       loadTasks();
-      setInterval(loadTasks, 30000); // Atualiza a cada 30 segundos
+      setInterval(loadTasks, 30000);
     </script>
   </body>
 </html>
