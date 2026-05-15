@@ -344,6 +344,42 @@
         opacity: 0.9;
         transform: scale(1.02);
       }
+
+      .filter-buttons-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin: 20px 0;
+        padding: 0 5px;
+      }
+
+      /* Estilo base dos botões seguindo a identidade da sua página */
+      .btn-filter {
+        font-family: "Montserrat", sans-serif;
+        font-weight: 700;
+        font-size: 0.85rem;
+        color: #000000;
+        background-color: var(--purple);
+        border: 2px solid var(--purple);
+        padding: 8px 16px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease-in-out;
+      }
+
+      /* Efeito Hover (passar o mouse por cima) - clareia levemente e expande */
+      .btn-filter:hover {
+        filter: brightness(1.2);
+        transform: translateY(-1px);
+      }
+
+      /* Estado Ativo (Botão Selecionado) - Ganha borda brilhante e sombra Neon roxa */
+      .btn-filter.active {
+        background-color: var(--purple);
+        color: #ffffff;
+        border-color: #ffffff;
+        box-shadow: 0 0 12px rgba(168, 85, 247, 0.6);
+      }
     </style>
   </head>
   <body>
@@ -357,6 +393,30 @@
       </div>
 
       <div class="stats-grid" id="cards-area"></div>
+
+      <div class="filter-buttons-container">
+        <button
+          class="btn-filter active"
+          onclick="mudarDivisao('Brasil', 'A', this)"
+        >
+          Brasil - A
+        </button>
+        <button class="btn-filter" onclick="mudarDivisao('Brasil', 'B', this)">
+          Brasil - B
+        </button>
+        <button class="btn-filter" onclick="mudarDivisao('Mundo', 'A', this)">
+          Mundo - A
+        </button>
+        <button class="btn-filter" onclick="mudarDivisao('Mundo', 'B', this)">
+          Mundo - B
+        </button>
+        <button
+          class="btn-filter"
+          onclick="mudarDivisao('Todos', 'Todos', this)"
+        >
+          Todos
+        </button>
+      </div>
 
       <div class="card-table">
         <table>
@@ -434,6 +494,8 @@
         "https://docs.google.com/spreadsheets/d/e/2PACX-1vTPYLZxLUF_-LbaTOC0lAuArsOgbduUo3VWqc2Q_ZSUvvrgV_xlnnzTCaUgh78k2yxbDyDdT18IKofI/pub?gid=0&single=true&output=csv";
 
       let logoDatabase = {};
+      let typePAIS = "Brasil";
+      let season = "A";
 
       const metrics = [
         {
@@ -544,6 +606,19 @@
         },
       ];
 
+      function mudarDivisao(pais, divisao, elementoClicado) {
+        document.querySelectorAll(".btn-filter").forEach((btn) => {
+          btn.classList.remove("active");
+        });
+
+        elementoClicado.classList.add("active");
+
+        typePAIS = pais;
+        season = divisao;
+
+        initFutebol();
+      }
+
       async function initFutebol() {
         try {
           const resp = await fetch(url_futebol);
@@ -565,7 +640,12 @@
               }),
           );
 
-          rows.forEach((cols, i) => {
+          const newRows = rows.filter((row) => {
+            if (season === "Todos") return row;
+            return row && row[12] === typePAIS && row[13] === season;
+          });
+
+          newRows.forEach((cols, i) => {
             if (cols.length < 15) return;
 
             const logoUrl = cols[0] ? cols[0].trim() : "";
@@ -594,7 +674,7 @@
                 ? "pos-1"
                 : pos <= 6
                   ? "pos-g6"
-                  : pos > rows.length - 6
+                  : pos > newRows.length - 6
                     ? "pos-z6"
                     : "";
 
