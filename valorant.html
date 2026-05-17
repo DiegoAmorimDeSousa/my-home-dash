@@ -1,0 +1,435 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard Valorant</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;700&family=Roboto:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      :root {
+        --panel-bg: rgba(24, 30, 38, 0.6);
+        --text-color: #ffffff;
+        --accent-color: #ff4655;
+        --border-color: #232d38;
+        --table-hover: #1f2732;
+      }
+
+      body {
+        font-family: "Roboto", sans-serif;
+        background-color: transparent !important;
+        background: transparent !important;
+        color: var(--text-color);
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+      }
+
+      .container {
+        width: 100%;
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      h1 {
+        font-family: "Oswald", sans-serif;
+        text-transform: uppercase;
+        font-size: 1.8rem;
+        letter-spacing: 2px;
+        margin-top: 0;
+        margin-bottom: 20px;
+        border-left: 5px solid var(--accent-color);
+        padding-left: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .refresh-status {
+        font-size: 0.8rem;
+        font-family: "Roboto", sans-serif;
+        color: #888;
+        text-transform: none;
+        letter-spacing: 0;
+      }
+
+      .filter-container {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+        padding: 5px 0;
+        flex-wrap: wrap;
+      }
+
+      .filter-btn {
+        background-color: rgba(24, 30, 38, 0.8);
+        color: #858c9c;
+        border: 1px solid var(--border-color);
+        padding: 8px 16px;
+        font-family: "Oswald", sans-serif;
+        font-size: 0.9rem;
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.15s ease;
+      }
+
+      .filter-btn:hover {
+        background-color: var(--table-hover);
+        color: #ffffff;
+        border-color: #38495f;
+      }
+
+      .filter-btn.active {
+        background-color: var(--accent-color);
+        color: #ffffff;
+        border-color: var(--accent-color);
+        box-shadow: 0 0 10px rgba(255, 70, 85, 0.4);
+      }
+
+      .table-container {
+        background-color: var(--panel-bg);
+        border-radius: 8px;
+        overflow: hidden;
+        border: 1px solid var(--border-color);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        text-align: center;
+      }
+
+      th {
+        background-color: rgba(0, 0, 0, 0.3);
+        font-family: "Oswald", sans-serif;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #a0a5b5;
+        padding: 12px 10px;
+        font-size: 0.9rem;
+        border-bottom: 2px solid var(--border-color);
+      }
+
+      td {
+        padding: 12px 10px;
+        border-bottom: 1px solid var(--border-color);
+        font-size: 0.85rem;
+      }
+
+      tr:hover td {
+        background-color: var(--table-hover);
+        transition: background 0.15s ease;
+      }
+
+      .col-time {
+        text-align: left;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .team-logo {
+        width: 20px;
+        height: 20px;
+        object-fit: contain;
+      }
+
+      .region-logo {
+        width: 22px;
+        height: 22px;
+        object-fit: contain;
+        display: block;
+        margin: 0 auto;
+      }
+
+      /* Alterado de Vermelho para Branco de Destaque */
+      .points-cell {
+        font-weight: 700;
+        color: #ffffff;
+      }
+
+      .positive-sm {
+        color: #00ff87;
+      }
+      .negative-sm {
+        color: #ff4655;
+      }
+
+      .ultimo-jogo-cell {
+        text-align: left;
+        font-size: 0.8rem;
+        color: #b3b9c9;
+        max-width: 200px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .loading {
+        text-align: center;
+        padding: 40px;
+        font-size: 1.1rem;
+        color: #888;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container" id="valorant-wrapper">
+      <h1>
+        TABELA DE CLASSIFICAÇÃO - VALORANT VCT
+        <span class="refresh-status">• Atualiza automaticamente</span>
+      </h1>
+
+      <div class="filter-container">
+        <button
+          class="filter-btn active"
+          id="btn-todos"
+          onclick="alterarFiltro('todos')"
+        >
+          Todos
+        </button>
+        <button
+          class="filter-btn"
+          id="btn-AMÉRICAS"
+          onclick="alterarFiltro('AMÉRICAS')"
+        >
+          Américas
+        </button>
+        <button
+          class="filter-btn"
+          id="btn-EMEA"
+          onclick="alterarFiltro('EMEA')"
+        >
+          EMEA
+        </button>
+        <button
+          class="filter-btn"
+          id="btn-PACÍFICO"
+          onclick="alterarFiltro('PACÍFICO')"
+        >
+          Pacífico
+        </button>
+        <button
+          class="filter-btn"
+          id="btn-CHINA"
+          onclick="alterarFiltro('CHINA')"
+        >
+          China
+        </button>
+      </div>
+
+      <div id="loading" class="loading">Sincronizando com a Planilha...</div>
+
+      <div
+        class="table-container"
+        id="tabela-container-div"
+        style="display: none"
+      >
+        <table id="tabela-valorant">
+          <thead>
+            <tr>
+              <th>POS</th>
+              <th style="text-align: left">TIME</th>
+              <th>P</th>
+              <th>V</th>
+              <th>D</th>
+              <th>J</th>
+              <th>MG</th>
+              <th>MP</th>
+              <th>SM</th>
+              <th>TM</th>
+              <th>%</th>
+              <th style="text-align: left">ÚLTIMO JOGO</th>
+              <th>REG</th>
+            </tr>
+          </thead>
+          <tbody id="tabela-corpo"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <script>
+      const SPREADSHEET_ID = "1X0JK-WAZtRtRq8N_XQ_sTF82IA0aCuxmnJ60OgKlpGw";
+      const SHEET_NAME = "Classificacao";
+      const url_api = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?sheet=${SHEET_NAME}&tqx=out:json`;
+
+      let todosOsTimes = []; // Cache global dos dados da planilha
+      let regiaoAtiva = "todos";
+
+      function atualizarAlturaPai() {
+        const wrapper = document.getElementById("valorant-wrapper");
+        if (wrapper) {
+          const alturaReal = wrapper.offsetHeight;
+          window.parent.postMessage(
+            {
+              height: alturaReal,
+              id: "frame-valorant",
+            },
+            "*",
+          );
+        }
+      }
+
+      async function carregarDashboard() {
+        try {
+          const resposta = await fetch(url_api);
+          const texto = await resposta.text();
+          const jsonPuro = JSON.parse(texto.substring(47, texto.length - 2));
+          const linhas = jsonPuro.table.rows;
+
+          todosOsTimes = [];
+
+          linhas.forEach((linha) => {
+            const celulas = AppPegaCelulas(linha.c);
+            if (
+              !celulas ||
+              !celulas.nomeTime ||
+              celulas.nomeTime.toLowerCase() === "time"
+            )
+              return;
+
+            todosOsTimes.push(celulas);
+          });
+
+          // Ordenação padrão por Pontuação e Saldo
+          todosOsTimes.sort((a, b) => {
+            if (b.pontos !== a.pontos) {
+              return b.pontos - a.pontos;
+            }
+            return b.saldoMapasNumero - a.saldoMapasNumero;
+          });
+
+          // Renderiza a tabela com base na região ativa no momento
+          renderizarTabelaPorRegiao(regiaoAtiva);
+
+          document.getElementById("loading").style.display = "none";
+          document.getElementById("tabela-container-div").style.display =
+            "block";
+
+          atualizarAlturaPai();
+        } catch (erro) {
+          console.error("Erro ao carregar dados:", erro);
+          document.getElementById("loading").innerHTML =
+            `<span>Erro ao sincronizar dados.</span>`;
+          atualizarAlturaPai();
+        }
+      }
+
+      function renderizarTabelaPorRegiao(regiao) {
+        const corpoTabela = document.getElementById("tabela-corpo");
+        corpoTabela.innerHTML = "";
+
+        let contadorPosicao = 1;
+
+        todosOsTimes.forEach((time) => {
+          const regiaoLinha = dynamicFixRegiao(time.regiao);
+          const regiaoAlvo = dynamicFixRegiao(regiao);
+
+          // Critério de filtragem: ignora se não pertencer à região escolhida
+          if (regiao !== "todos" && regiaoLinha !== regiaoAlvo) return;
+
+          let classeSaldo = "";
+          if (time.saldoMapasNumero > 0) classeSaldo = "positive-sm";
+          if (time.saldoMapasNumero < 0) classeSaldo = "negative-sm";
+
+          const tagLogo =
+            time.logoUrl && time.logoUrl.startsWith("http")
+              ? `<img src="${time.logoUrl}" class="team-logo" alt="logo">`
+              : ``;
+
+          const tagRegiaoLogo =
+            time.regiaoLogoUrl && time.regiaoLogoUrl.startsWith("http")
+              ? `<img src="${time.regiaoLogoUrl}" class="region-logo" title="${time.regiao}" alt="${time.regiao}">`
+              : "";
+
+          const tr = document.createElement("tr");
+
+          tr.innerHTML = `
+                    <td>${contadorPosicao}º</td>
+                    <td>
+                        <div class="col-time">
+                            ${tagLogo}
+                            <span>${time.nomeTime}</span>
+                        </div>
+                    </td>
+                    <td class="points-cell">${time.pontos}</td>
+                    <td>${time.vitorias}</td>
+                    <td>${time.derrotas}</td>
+                    <td>${time.jogos}</td>
+                    <td>${time.mapasG}</td>
+                    <td>${time.mapasP}</td>
+                    <td class="${classeSaldo}">${time.saldoMapasTexto}</td>
+                    <td>${time.totalMapas}</td>
+                    <td>${time.aproveitamento}</td>
+                    <td class="ultimo-jogo-cell">${time.ultimoJogo}</td>
+                    <td>${tagRegiaoLogo}</td>
+                `;
+          corpoTabela.appendChild(tr);
+
+          contadorPosicao++; // Incrementa dinamicamente a posição apenas para os exibidos
+        });
+      }
+
+      function alterarFiltro(novaRegiao) {
+        regiaoAtiva = novaRegiao;
+
+        // Atualiza estados visuais dos botões
+        const botoes = document.querySelectorAll(".filter-btn");
+        botoes.forEach((btn) => btn.classList.remove("active"));
+
+        const btnAtivo = document.getElementById(`btn-${novaRegiao}`);
+        if (btnAtivo) btnAtivo.classList.add("active");
+
+        // Renderiza novamente recalculando as posições (1º, 2º, 3º...)
+        renderizarTabelaPorRegiao(regiaoAtiva);
+        atualizarAlturaPai();
+      }
+
+      function AppPegaCelulas(c) {
+        if (!c || !c[1]) return null;
+
+        let rawSaldo = c[8] ? String(c[8].v || c[8].f || "0") : "0";
+        let numeroSaldo = parseInt(rawSaldo.replace("+", ""), 10) || 0;
+        let textoSaldo =
+          numeroSaldo > 0 ? "+" + numeroSaldo : String(numeroSaldo);
+
+        return {
+          logoUrl: c[0] ? c[0].v : "",
+          nomeTime: c[1] ? String(c[1].v).trim() : "",
+          pontos: c[2] ? Number(c[2].v) || 0 : 0,
+          vitorias: c[3] ? c[3].v : 0,
+          derrotas: c[4] ? c[4].v : 0,
+          jogos: c[5] ? c[5].v : 0,
+          mapasG: c[6] ? c[6].v : 0,
+          mapasP: c[7] ? c[7].v : 0,
+          saldoMapasNumero: numeroSaldo,
+          saldoMapasTexto: textoSaldo,
+          totalMapas: c[9] ? c[9].v || "-" : "-",
+          aproveitamento: c[10] ? c[10].f || String(c[10].v) : "0%",
+          ultimoJogo: c[11] ? c[11].v : "-",
+          regiao: c[12] ? String(c[12].v).toUpperCase().trim() : "DESCONHECIDO",
+          regiaoLogoUrl: c[13] ? c[13].v : "",
+        };
+      }
+
+      function dynamicFixRegiao(val) {
+        if (!val) return "";
+        let normalized = val.toUpperCase().trim();
+        if (normalized === "EME") return "EMEA";
+        return normalized;
+      }
+
+      carregarDashboard();
+      window.addEventListener("resize", atualizarAlturaPai);
+      setInterval(carregarDashboard, 30000);
+    </script>
+  </body>
+</html>
