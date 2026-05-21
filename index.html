@@ -113,6 +113,9 @@
       #frame-valorant {
         min-height: 450px;
       }
+      #frame-rpg {
+        min-height: 520px;
+      }
       #frame-futebol {
         min-height: 450px;
       }
@@ -208,6 +211,20 @@
       <header>
         <h1>PAINEL <span style="color: var(--purple)">PRIME</span></h1>
       </header>
+
+      <div class="module-container" id="container-rpg">
+        <div class="module-header">
+          <span class="module-title">RPG Boss Battle - Conquistas</span>
+          <button class="toggle-btn" onclick="controlePainel('rpg')">
+            Desligar
+          </button>
+        </div>
+        <iframe
+          src="rpg_boss.html"
+          class="module-frame"
+          id="frame-rpg"
+        ></iframe>
+      </div>
 
       <div class="grid-main">
         <div class="module-container" id="container-tarefas">
@@ -311,7 +328,7 @@
 
       // 💾 FUNÇÃO EXECUTADA AO CARREGAR A PÁGINA (Verifica o que estava desligado)
       function aplicarEstadoInicial() {
-        const paineis = ["tarefas", "financas", "valorant", "futebol"];
+        const paineis = ["tarefas", "rpg", "financas", "valorant", "futebol"];
 
         paineis.forEach((id) => {
           // Procura se o navegador salvou que esse painel devia estar "off"

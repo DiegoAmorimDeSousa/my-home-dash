@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      html, body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background-color: #0b0e14;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      .space-room {
+        width: 100%;
+        height: 100%;
+        padding: 20px; 
+        background-color: #0b0e14;
+      }
+
+      /* 🧱 O Segredo para cantos perfeitos: A sala é o Grid, mas as paredes são fixas */
+      .room {
+        width: 100%;
+        height: 100%;
+        display: grid;
+        /* Colunas fixas de 60px nas pontas, centro livre */
+        grid-template-columns: 60px 1fr 60px;
+        /* Linhas fixas de 30px no topo/base, centro livre */
+        grid-template-rows: 30px 1fr 30px;
+        position: relative;
+        background-color: #1a1f2c; /* Cor do fundo do centro da arena */
+      }
+
+      /* Estilo dos tijolos individuais (Exatamente 60x30px) */
+      .room-border {
+        border: 2px solid rgb(0, 0, 0);
+        width: 60px;
+        height: 30px;
+        flex-shrink: 0; /* Impede que o flexbox esmague o tijolo */
+        background: linear-gradient(180deg, #4d59cc 0%, #2b3499 100%);
+        box-shadow: inset 1px 1px 0px rgba(255, 255, 255, 0.2);
+      }
+
+      /* Containers das paredes */
+      .row-bricks, .col-bricks {
+        display: flex;
+        overflow: hidden; /* Corta o excesso de tijolos que não cabem */
+      }
+
+      .col-bricks {
+        flex-direction: column;
+      }
+
+      /* Posicionamento exato no Grid (O segredo dos cantos) */
+      #topo { grid-column: 1 / span 3; grid-row: 1; z-index: 2; }
+      #base { grid-column: 1 / span 3; grid-row: 3; z-index: 2; }
+      
+      /* As laterais começam na linha 2 e terminam na 2, não tocam nos cantos */
+      #esquerda { grid-column: 1; grid-row: 2; }
+      #direita { grid-column: 3; grid-row: 2; justify-content: flex-end; }
+
+      /* Centraliza o texto no miolo da arena */
+      .game-content {
+        grid-column: 2;
+        grid-row: 2;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: white;
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 20px;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+
+    <div class="space-room">
+        <div class="room">
+            <div id="topo" class="row-bricks"></div>
+            <div id="base" class="row-bricks"></div>
+            <div id="esquerda" class="col-bricks"></div>
+            
+            <div class="game-content">
+                MONSTRO DE TESTE
+            </div>
+            
+            <div id="direita" class="col-bricks"></div>
+        </div>
+    </div>
+
+    <script>
+        function criarParedes() {
+            const topo = document.getElementById('topo');
+            const base = document.getElementById('base');
+            const esquerda = document.getElementById('esquerda');
+            const direita = document.getElementById('direita');
+
+            // Calcula quantos tijolos cabem arredondando para CIMA
+            const qtdLargura = Math.ceil(window.innerWidth / 60);
+            const qtdAltura = Math.ceil(window.innerHeight / 30);
+
+            // Preenche Topo e Base
+            for(let i = 0; i < qtdLargura; i++) {
+                topo.appendChild(criarTijolo());
+                base.appendChild(criarTijolo());
+            }
+
+            // Preenche Laterais
+            for(let i = 0; i < qtdAltura; i++) {
+                esquerda.appendChild(criarTijolo());
+                direita.appendChild(criarTijolo());
+            }
+        }
+
+        function criarTijolo() {
+            const brick = document.createElement('div');
+            brick.classList.add('room-border');
+            return brick;
+        }
+
+        criarParedes();
+    </script>
+  </body>
+</html>
