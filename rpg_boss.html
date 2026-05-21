@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
+    <title>RPG Boss Battle</title>
     <style>
       html, body {
         margin: 0;
@@ -25,58 +25,114 @@
         background-color: #0b0e14;
       }
 
-      /* 🧱 O Segredo para cantos perfeitos: A sala é o Grid, mas as paredes são fixas */
       .room {
         width: 100%;
         height: 100%;
         display: grid;
-        /* Colunas fixas de 60px nas pontas, centro livre */
         grid-template-columns: 60px 1fr 60px;
-        /* Linhas fixas de 30px no topo/base, centro livre */
         grid-template-rows: 30px 1fr 30px;
         position: relative;
-        background-color: #1a1f2c; /* Cor do fundo do centro da arena */
+        background-color: #1a1f2c;
       }
 
-      /* Estilo dos tijolos individuais (Exatamente 60x30px) */
       .room-border {
         border: 2px solid rgb(0, 0, 0);
         width: 60px;
         height: 30px;
-        flex-shrink: 0; /* Impede que o flexbox esmague o tijolo */
+        flex-shrink: 0;
         background: linear-gradient(180deg, #4d59cc 0%, #2b3499 100%);
         box-shadow: inset 1px 1px 0px rgba(255, 255, 255, 0.2);
       }
 
-      /* Containers das paredes */
-      .row-bricks, .col-bricks {
-        display: flex;
-        overflow: hidden; /* Corta o excesso de tijolos que não cabem */
-      }
-
-      .col-bricks {
-        flex-direction: column;
-      }
-
-      /* Posicionamento exato no Grid (O segredo dos cantos) */
+      .row-bricks, .col-bricks { display: flex; overflow: hidden; }
+      .col-bricks { flex-direction: column; }
       #topo { grid-column: 1 / span 3; grid-row: 1; z-index: 2; }
       #base { grid-column: 1 / span 3; grid-row: 3; z-index: 2; }
-      
-      /* As laterais começam na linha 2 e terminam na 2, não tocam nos cantos */
       #esquerda { grid-column: 1; grid-row: 2; }
       #direita { grid-column: 3; grid-row: 2; justify-content: flex-end; }
 
-      /* Centraliza o texto no miolo da arena */
+      /* 🎮 MIOLO DA ARENA */
       .game-content {
         grid-column: 2;
         grid-row: 2;
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+      }
+
+      /* 📊 BARRA DE VIDA E HUD DISCRETA */
+      .boss-hud {
+        position: absolute;
+        top: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 320px;
+        text-align: center;
+        z-index: 10;
+        background: rgba(11, 14, 20, 0.9);
+        padding: 6px 12px;
+        border: 2px solid #000;
+        border-radius: 4px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.6);
+      }
+
+      .boss-name {
+        color: #ff4a4a;
+        font-family: 'Courier New', monospace;
+        font-size: 13px;
+        font-weight: bold;
+        letter-spacing: 1px;
+        margin-bottom: 4px;
+        text-transform: uppercase;
+      }
+
+      .hp-container {
+        width: 100%;
+        height: 14px;
+        background-color: #220a0a;
+        border: 1px solid #000;
+        position: relative;
+        border-radius: 1px;
+        overflow: hidden;
+      }
+
+      .hp-bar {
+        height: 100%;
+        width: 100%;
+        background: linear-gradient(180deg, #ff4141 0%, #991414 100%);
+      }
+
+      .hp-text {
+        position: absolute;
+        width: 100%;
+        text-align: center;
+        top: 0px;
+        left: 0;
+        color: white;
+        font-family: monospace;
+        font-size: 9px;
+        font-weight: bold;
+        text-shadow: 1px 1px 1px #000;
+      }
+
+      /* 👾 CONTAINER DO BOSS */
+      .boss-sprite {
+        position: absolute;
+        width: 100px;  
+        height: 100px;
         display: flex;
         justify-content: center;
         align-items: center;
-        color: white;
-        font-family: 'Courier New', Courier, monospace;
-        font-size: 20px;
-        font-weight: bold;
+        z-index: 5;
+      }
+
+      .boss-sprite img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+        image-rendering: pixelated; /* Deixa o Pixel Art perfeitamente nítido */
+        filter: drop-shadow(0px 8px 5px rgba(0, 0, 0, 0.6));
       }
     </style>
   </head>
@@ -88,8 +144,18 @@
             <div id="base" class="row-bricks"></div>
             <div id="esquerda" class="col-bricks"></div>
             
-            <div class="game-content">
-                MONSTRO DE TESTE
+            <div class="game-content" id="arena">
+                <div class="boss-hud">
+                    <div class="boss-name" id="name-display">Buscando Chefe...</div>
+                    <div class="hp-container">
+                        <div class="hp-bar" id="hp-bar-fill"></div>
+                        <div class="hp-text" id="hp-text-display">0 / 0 HP</div>
+                    </div>
+                </div>
+
+                <div class="boss-sprite" id="boss-character">
+                    <img id="boss-image" src="" alt="Boss">
+                </div>
             </div>
             
             <div id="direita" class="col-bricks"></div>
@@ -97,23 +163,20 @@
     </div>
 
     <script>
+        // 🧱 Criação das paredes externas do seu código base
         function criarParedes() {
             const topo = document.getElementById('topo');
             const base = document.getElementById('base');
             const esquerda = document.getElementById('esquerda');
             const direita = document.getElementById('direita');
 
-            // Calcula quantos tijolos cabem arredondando para CIMA
             const qtdLargura = Math.ceil(window.innerWidth / 60);
             const qtdAltura = Math.ceil(window.innerHeight / 30);
 
-            // Preenche Topo e Base
             for(let i = 0; i < qtdLargura; i++) {
                 topo.appendChild(criarTijolo());
                 base.appendChild(criarTijolo());
             }
-
-            // Preenche Laterais
             for(let i = 0; i < qtdAltura; i++) {
                 esquerda.appendChild(criarTijolo());
                 direita.appendChild(criarTijolo());
@@ -126,7 +189,65 @@
             return brick;
         }
 
+        // 🧠 NOVO ALGORITMO: BUSCA SKIN DE FORMA PROCEDURAL VIA API REAL
+        async function fetchBossDaAPI() {
+            const arena = document.getElementById('arena');
+            const bossCharacter = document.getElementById('boss-character');
+            const bossImage = document.getElementById('boss-image');
+
+            // Sorteia a vida (50 a 500)
+            const vidaMax = Math.floor(Math.random() * (500 - 50 + 1)) + 50;
+
+            try {
+                // Sorteia um ID de monstro entre 1 e 649 (Gerações de Pixel Art clássicas e nostálgicas)
+                const idMonstro = Math.floor(Math.random() * 649) + 1;
+                
+                // Faz a requisição gratuita na API
+                const resposta = await fetch(`https://pokeapi.co/api/v2/pokemon/${idMonstro}`);
+                const dados = await resposta.json();
+
+                // Pega a URL da sprite de pixel art com fundo transparente nativa da API
+                const urlSprite = dados.sprites.versions['generation-v']['black-white'].animated.front_default 
+                                  || dados.sprites.front_default;
+
+                // Títulos medievais aleatórios para complementar o nome do monstro
+                const titulos = ["o Destruidor", "o Sombrio", "Ancião das Criptas", "Maldito", "Lorde de Sangue", "o Corrompido"];
+                const tituloSorteado = titulos[Math.floor(Math.random() * titulos.length)];
+                
+                // Formata o nome do boss deixando a primeira letra maiúscula
+                const nomeBoss = dados.name.charAt(0).toUpperCase() + dados.name.slice(1);
+
+                // Atualiza a interface
+                document.getElementById('name-display').innerText = `${nomeBoss}, ${tituloSorteado}`;
+                document.getElementById('hp-text-display').innerText = `${vidaMax} / ${vidaMax} HP`;
+                bossImage.src = urlSprite;
+
+                // Executa o cálculo de posição aleatória na arena após a imagem carregar
+                const larguraArena = arena.clientWidth;
+                const alturaArena = arena.clientHeight;
+                const margemSeguranca = 40;
+                const tamanhoBoss = 100; 
+
+                const limiteMaxX = larguraArena - tamanhoBoss - margemSeguranca;
+                const limiteMaxY = alturaArena - tamanhoBoss - margemSeguranca;
+
+                const randomX = Math.floor(Math.random() * (limiteMaxX - margemSeguranca)) + margemSeguranca;
+                const randomY = Math.floor(Math.random() * (limiteMaxY - margemSeguranca)) + margemSeguranca;
+
+                bossCharacter.style.left = `${randomX}px`;
+                bossCharacter.style.top = `${randomY}px`;
+
+            } catch (erro) {
+                console.error("Erro ao buscar boss na API:", erro);
+                // Backup caso a internet caia
+                document.getElementById('name-display').innerText = "Gargula de Pedra Anciã";
+                document.getElementById('hp-text-display').innerText = `${vidaMax} / ${vidaMax} HP`;
+                bossImage.src = "https://i.imgur.com/M6X1YhA.png";
+            }
+        }
+
         criarParedes();
+        window.onload = fetchBossDaAPI;
     </script>
   </body>
 </html>
