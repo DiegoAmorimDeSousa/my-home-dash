@@ -111,7 +111,6 @@
         text-shadow: 1px 1px 1px #000;
       }
 
-      /* 📜 DETALHES ADICIONAIS DO STATUS (Vindo da API) */
       .boss-details {
         display: flex;
         justify-content: space-between;
@@ -121,14 +120,8 @@
         padding-top: 6px;
       }
 
-      .boss-details span {
-        font-weight: bold;
-      }
-
-      .type-badge {
-        color: #ffb703;
-        text-transform: uppercase;
-      }
+      .boss-details span { font-weight: bold; }
+      .type-badge { color: #ffb703; text-transform: uppercase; }
 
       /* 👾 SPRITE DO BOSS */
       .boss-sprite {
@@ -147,6 +140,39 @@
         object-fit: contain;
         image-rendering: pixelated;
         filter: drop-shadow(0px 8px 5px rgba(0, 0, 0, 0.6));
+      }
+
+      /* ⚔️ ESTRUTURA DOS HERÓIS (IMAGENS REAIS) */
+      .hero-container {
+        position: absolute;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        z-index: 6;
+      }
+
+      /* Estilização para as suas imagens .png */
+      .hero-container img {
+        height: 64px; /* Altura ideal na proporção da arena */
+        width: auto;
+        object-fit: contain;
+        image-rendering: pixelated; /* Mantém os pixels nítidos sem borrar */
+        filter: drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.5));
+      }
+
+      .hero-tag {
+        color: #ffffff;
+        font-family: 'Courier New', monospace;
+        font-size: 11px;
+        font-weight: bold;
+        background: rgba(0, 0, 0, 0.85);
+        padding: 2px 6px;
+        border-radius: 3px;
+        border: 1px solid #444;
+        margin-top: 6px;
+        text-transform: uppercase;
+        white-space: nowrap;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.5);
       }
     </style>
   </head>
@@ -177,13 +203,23 @@
                 <div class="boss-sprite" id="boss-character">
                     <img id="boss-image" src="" alt="Boss">
                 </div>
+
+                <div class="hero-container" id="hero-diego">
+                    <img src="diego.png" alt="Diego">
+                    <div class="hero-tag">Diego</div>
+                </div>
+
+                <div class="hero-container" id="hero-beatriz">
+                    <img src="beatriz.png" alt="Beatriz">
+                    <div class="hero-tag">Beatriz</div>
+                </div>
             </div>
             
             <div id="direita" class="col-bricks"></div>
         </div>
     </div>
 
-    <script>
+    <script {nonce}>
         function criarParedes() {
             const topo = document.getElementById('topo');
             const base = document.getElementById('base');
@@ -206,42 +242,46 @@
             const arena = document.getElementById('arena');
             const bossCharacter = document.getElementById('boss-character');
             const bossImage = document.getElementById('boss-image');
+            const diego = document.getElementById('hero-diego');
+            const beatriz = document.getElementById('hero-beatriz');
 
-            // Sorteia a vida (50 a 500)
             const vidaMax = Math.floor(Math.random() * (500 - 50 + 1)) + 50;
+            const larguraArena = arena.clientWidth;
+            const alturaArena = arena.clientHeight;
 
+            // POSICIONAMENTO SEGURO DOS HERÓIS (Lado Esquerdo do Painel)
+            const centerY = alturaArena / 2;
+            
+            // Diego na vanguarda
+            diego.style.left = `${larguraArena * 0.12}px`;
+            diego.style.top = `${centerY - 60}px`;
+
+            // Beatriz dando suporte logo atrás/abaixo
+            beatriz.style.left = `${larguraArena * 0.08}px`;
+            beatriz.style.top = `${centerY + 40}px`;
+
+            // CARREGAMENTO DO POKÉMON (Lado Direito)
             try {
-                // Sorteia entre os 493 primeiros Pokémons (Pixel Art clássica)
                 const idMonstro = Math.floor(Math.random() * 493) + 1;
-                
                 const resposta = await fetch(`https://pokeapi.co/api/v2/pokemon/${idMonstro}`);
                 const dados = await resposta.json();
 
-                // Nome Real do Pokémon
                 const nomeReal = dados.name.toUpperCase();
-                
-                // Pega os tipos (pode ter mais de um, então juntamos com "/")
                 const tipos = dados.types.map(t => t.type.name).join('/');
-                
-                // A API traz altura em decímetros e peso em hectogramas, convertemos para metros e kg
                 const altura = (dados.height / 10).toFixed(1) + "m";
                 const peso = (dados.weight / 10).toFixed(1) + "kg";
 
-                // Atualiza os textos do Status
                 document.getElementById('name-display').innerText = nomeReal;
                 document.getElementById('hp-text-display').innerText = `${vidaMax} / ${vidaMax} HP`;
                 document.getElementById('type-display').innerText = tipos;
                 document.getElementById('height-display').innerText = altura;
                 document.getElementById('weight-display').innerText = peso;
 
-                // Define a imagem
                 bossImage.src = dados.sprites.front_default;
 
-                // Reposicionamento Randômico dentro do miolo
-                const larguraArena = arena.clientWidth;
-                const alturaArena = arena.clientHeight;
-                const randomX = Math.floor(Math.random() * Math.max(1, (larguraArena - 220))) + 50;
-                const randomY = Math.floor(Math.random() * Math.max(1, (alturaArena - 280))) + 50;
+                // O Boss spawna dinamicamente da metade direita para a frente
+                const randomX = Math.floor(Math.random() * Math.max(1, (larguraArena * 0.35))) + (larguraArena * 0.55);
+                const randomY = Math.floor(Math.random() * Math.max(1, (alturaArena - 240))) + 100;
 
                 bossCharacter.style.left = `${randomX}px`;
                 bossCharacter.style.top = `${randomY}px`;
