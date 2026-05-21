@@ -14,9 +14,7 @@
         background-color: #0b0e14;
       }
 
-      * {
-        box-sizing: border-box;
-      }
+      * { box-sizing: border-box; }
 
       .space-room {
         width: 100%;
@@ -61,30 +59,30 @@
         overflow: hidden;
       }
 
-      /* 📊 BARRA DE VIDA E HUD DISCRETA */
+      /* 📊 HUD DE STATUS DO BOSS */
       .boss-hud {
         position: absolute;
-        top: 10px;
+        top: 15px;
         left: 50%;
         transform: translateX(-50%);
         width: 320px;
-        text-align: center;
-        z-index: 10;
-        background: rgba(11, 14, 20, 0.9);
-        padding: 6px 12px;
+        background: rgba(11, 14, 20, 0.95);
+        padding: 10px;
         border: 2px solid #000;
         border-radius: 4px;
         box-shadow: 0 4px 8px rgba(0,0,0,0.6);
+        z-index: 10;
+        font-family: 'Courier New', monospace;
       }
 
       .boss-name {
         color: #ff4a4a;
-        font-family: 'Courier New', monospace;
-        font-size: 13px;
+        font-size: 15px;
         font-weight: bold;
-        letter-spacing: 1px;
-        margin-bottom: 4px;
+        text-align: center;
         text-transform: uppercase;
+        margin-bottom: 5px;
+        letter-spacing: 1px;
       }
 
       .hp-container {
@@ -93,8 +91,7 @@
         background-color: #220a0a;
         border: 1px solid #000;
         position: relative;
-        border-radius: 1px;
-        overflow: hidden;
+        margin-bottom: 8px;
       }
 
       .hp-bar {
@@ -107,20 +104,37 @@
         position: absolute;
         width: 100%;
         text-align: center;
-        top: 0px;
-        left: 0;
+        top: 0px; left: 0;
         color: white;
-        font-family: monospace;
         font-size: 9px;
         font-weight: bold;
         text-shadow: 1px 1px 1px #000;
       }
 
-      /* 👾 CONTAINER DO BOSS */
+      /* 📜 DETALHES ADICIONAIS DO STATUS (Vindo da API) */
+      .boss-details {
+        display: flex;
+        justify-content: space-between;
+        color: #a0aabf;
+        font-size: 10px;
+        border-top: 1px solid #333;
+        padding-top: 6px;
+      }
+
+      .boss-details span {
+        font-weight: bold;
+      }
+
+      .type-badge {
+        color: #ffb703;
+        text-transform: uppercase;
+      }
+
+      /* 👾 SPRITE DO BOSS */
       .boss-sprite {
         position: absolute;
-        width: 100px;  
-        height: 100px;
+        width: 120px;
+        height: 120px;
         display: flex;
         justify-content: center;
         align-items: center;
@@ -131,7 +145,7 @@
         max-width: 100%;
         max-height: 100%;
         object-fit: contain;
-        image-rendering: pixelated; /* Deixa o Pixel Art perfeitamente nítido */
+        image-rendering: pixelated;
         filter: drop-shadow(0px 8px 5px rgba(0, 0, 0, 0.6));
       }
     </style>
@@ -146,10 +160,17 @@
             
             <div class="game-content" id="arena">
                 <div class="boss-hud">
-                    <div class="boss-name" id="name-display">Buscando Chefe...</div>
+                    <div class="boss-name" id="name-display">Identificando...</div>
+                    
                     <div class="hp-container">
-                        <div class="hp-bar" id="hp-bar-fill"></div>
+                        <div class="hp-bar"></div>
                         <div class="hp-text" id="hp-text-display">0 / 0 HP</div>
+                    </div>
+
+                    <div class="boss-details">
+                        <div>TIPO: <span id="type-display" class="type-badge">---</span></div>
+                        <div>ALT: <span id="height-display">---</span></div>
+                        <div>PESO: <span id="weight-display">---</span></div>
                     </div>
                 </div>
 
@@ -163,24 +184,16 @@
     </div>
 
     <script>
-        // 🧱 Criação das paredes externas do seu código base
         function criarParedes() {
             const topo = document.getElementById('topo');
             const base = document.getElementById('base');
             const esquerda = document.getElementById('esquerda');
             const direita = document.getElementById('direita');
-
             const qtdLargura = Math.ceil(window.innerWidth / 60);
             const qtdAltura = Math.ceil(window.innerHeight / 30);
 
-            for(let i = 0; i < qtdLargura; i++) {
-                topo.appendChild(criarTijolo());
-                base.appendChild(criarTijolo());
-            }
-            for(let i = 0; i < qtdAltura; i++) {
-                esquerda.appendChild(criarTijolo());
-                direita.appendChild(criarTijolo());
-            }
+            for(let i = 0; i < qtdLargura; i++) { topo.appendChild(criarTijolo()); base.appendChild(criarTijolo()); }
+            for(let i = 0; i < qtdAltura; i++) { esquerda.appendChild(criarTijolo()); direita.appendChild(criarTijolo()); }
         }
 
         function criarTijolo() {
@@ -189,7 +202,6 @@
             return brick;
         }
 
-        // 🧠 NOVO ALGORITMO: BUSCA SKIN DE FORMA PROCEDURAL VIA API REAL
         async function fetchBossDaAPI() {
             const arena = document.getElementById('arena');
             const bossCharacter = document.getElementById('boss-character');
@@ -199,50 +211,45 @@
             const vidaMax = Math.floor(Math.random() * (500 - 50 + 1)) + 50;
 
             try {
-                // Sorteia um ID de monstro entre 1 e 649 (Gerações de Pixel Art clássicas e nostálgicas)
-                const idMonstro = Math.floor(Math.random() * 649) + 1;
+                // Sorteia entre os 493 primeiros Pokémons (Pixel Art clássica)
+                const idMonstro = Math.floor(Math.random() * 493) + 1;
                 
-                // Faz a requisição gratuita na API
                 const resposta = await fetch(`https://pokeapi.co/api/v2/pokemon/${idMonstro}`);
                 const dados = await resposta.json();
 
-                // Pega a URL da sprite de pixel art com fundo transparente nativa da API
-                const urlSprite = dados.sprites.versions['generation-v']['black-white'].animated.front_default 
-                                  || dados.sprites.front_default;
-
-                // Títulos medievais aleatórios para complementar o nome do monstro
-                const titulos = ["o Destruidor", "o Sombrio", "Ancião das Criptas", "Maldito", "Lorde de Sangue", "o Corrompido"];
-                const tituloSorteado = titulos[Math.floor(Math.random() * titulos.length)];
+                // Nome Real do Pokémon
+                const nomeReal = dados.name.toUpperCase();
                 
-                // Formata o nome do boss deixando a primeira letra maiúscula
-                const nomeBoss = dados.name.charAt(0).toUpperCase() + dados.name.slice(1);
+                // Pega os tipos (pode ter mais de um, então juntamos com "/")
+                const tipos = dados.types.map(t => t.type.name).join('/');
+                
+                // A API traz altura em decímetros e peso em hectogramas, convertemos para metros e kg
+                const altura = (dados.height / 10).toFixed(1) + "m";
+                const peso = (dados.weight / 10).toFixed(1) + "kg";
 
-                // Atualiza a interface
-                document.getElementById('name-display').innerText = `${nomeBoss}, ${tituloSorteado}`;
+                // Atualiza os textos do Status
+                document.getElementById('name-display').innerText = nomeReal;
                 document.getElementById('hp-text-display').innerText = `${vidaMax} / ${vidaMax} HP`;
-                bossImage.src = urlSprite;
+                document.getElementById('type-display').innerText = tipos;
+                document.getElementById('height-display').innerText = altura;
+                document.getElementById('weight-display').innerText = peso;
 
-                // Executa o cálculo de posição aleatória na arena após a imagem carregar
+                // Define a imagem
+                bossImage.src = dados.sprites.front_default;
+
+                // Reposicionamento Randômico dentro do miolo
                 const larguraArena = arena.clientWidth;
                 const alturaArena = arena.clientHeight;
-                const margemSeguranca = 40;
-                const tamanhoBoss = 100; 
-
-                const limiteMaxX = larguraArena - tamanhoBoss - margemSeguranca;
-                const limiteMaxY = alturaArena - tamanhoBoss - margemSeguranca;
-
-                const randomX = Math.floor(Math.random() * (limiteMaxX - margemSeguranca)) + margemSeguranca;
-                const randomY = Math.floor(Math.random() * (limiteMaxY - margemSeguranca)) + margemSeguranca;
+                const randomX = Math.floor(Math.random() * Math.max(1, (larguraArena - 220))) + 50;
+                const randomY = Math.floor(Math.random() * Math.max(1, (alturaArena - 280))) + 50;
 
                 bossCharacter.style.left = `${randomX}px`;
                 bossCharacter.style.top = `${randomY}px`;
 
             } catch (erro) {
-                console.error("Erro ao buscar boss na API:", erro);
-                // Backup caso a internet caia
-                document.getElementById('name-display').innerText = "Gargula de Pedra Anciã";
+                console.error(erro);
+                document.getElementById('name-display').innerText = "MONSTRO DESCONHECIDO";
                 document.getElementById('hp-text-display').innerText = `${vidaMax} / ${vidaMax} HP`;
-                bossImage.src = "https://i.imgur.com/M6X1YhA.png";
             }
         }
 
