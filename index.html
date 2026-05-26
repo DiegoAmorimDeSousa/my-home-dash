@@ -1,427 +1,416 @@
 <!doctype html>
 <html lang="pt-br">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
-    <title>Painel Prime - Home</title>
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Montserrat:wght@700;800&display=swap"
-      rel="stylesheet"
-    />
-    <style>
-      :root {
-        --bg: #0b0e14;
-        --purple: #a855f7;
-        --text: #ffffff;
-        --panel-bg: rgba(24, 30, 38, 0.6);
-        --border-color: #232d38;
-      }
-      body {
-        font-family: "Inter", sans-serif;
-        background: var(--bg);
-        color: var(--text);
-        margin: 0;
-        padding: 20px;
-        overflow-y: auto;
-      }
-      .container {
-        max-width: 1600px;
-        margin: 0 auto;
-      }
-      header {
-        margin-bottom: 20px;
-      }
-      header h1 {
-        font-family: "Montserrat";
-        font-size: 1.8rem;
-        margin: 0;
-      }
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Painel Prime</title>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&family=Exo+2:wght@400;600;800&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg: #07090f;
+      --surface: #0d1117;
+      --surface2: #111827;
+      --border: #1e2535;
+      --accent: #a855f7;
+      --green: #00ff88;
+      --red: #ff3d5a;
+      --text: #e2e8f0;
+      --dim: #4a5568;
+      --glow-purple: rgba(168,85,247,0.15);
+      --glow-red: rgba(255,61,90,0.2);
+    }
 
-      .grid-main {
-        display: flex;
-        flex-direction: column;
-        gap: 30px;
-      }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
-      /* 📦 CONTAINER DO MÓDULO (Agrupa o topo de controle + o iframe) */
-      .module-container {
-        background-color: var(--panel-bg);
-        border: 1px solid var(--border-color);
-        border-radius: 8px;
-        overflow: hidden;
-      }
+    body {
+      font-family: 'Exo 2', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
 
-      /* 🕹️ BARRA DE CONTROLE SUPERIOR DE CADA PAINEL */
-      .module-header {
-        background-color: rgba(0, 0, 0, 0.4);
-        padding: 10px 15px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        border-bottom: 1px solid var(--border-color);
-      }
+    /* Grid de fundo sutil */
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 0;
+      background-image:
+        linear-gradient(rgba(168,85,247,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(168,85,247,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+    }
 
-      .module-title {
-        font-family: "Montserrat", sans-serif;
-        font-size: 0.9rem;
-        letter-spacing: 1px;
-        text-transform: uppercase;
-        color: #a0a5b5;
-      }
+    .container {
+      position: relative; z-index: 1;
+      max-width: 1800px;
+      margin: 0 auto;
+      padding: 18px 20px;
+    }
 
-      /* 🔘 BOTÃO LIGAR / DESLIGAR */
-      .toggle-btn {
-        background-color: #ff4655; /* Vermelho padrão para Desligar */
-        color: white;
-        border: none;
-        padding: 6px 12px;
-        font-size: 0.75rem;
-        font-weight: bold;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        border-radius: 4px;
-        cursor: pointer;
-        transition: background 0.2s ease;
-      }
+    /* ── HEADER ── */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+    }
 
-      .toggle-btn:hover {
-        opacity: 0.9;
-      }
+    .logo {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1.6rem;
+      font-weight: 700;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+    }
+    .logo span { color: var(--accent); }
 
-      /* Estado do botão quando o painel está desligado */
-      .toggle-btn.off {
-        background-color: #00ff87; /* Verde para indicar que pode Ligar */
-        color: #0b0e14;
-      }
+    .header-status {
+      display: flex; gap: 20px; align-items: center;
+    }
+    .status-pill {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--dim);
+      letter-spacing: 1px;
+      padding: 4px 10px;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+    }
+    .status-pill.live { color: var(--green); border-color: rgba(0,255,136,0.3); }
+    .status-pill.live::before { content: '● '; }
 
-      .module-frame {
-        width: 100%;
-        border: none;
-        display: block;
-        transition: height 0.3s ease;
-      }
+    /* ── ROW PRINCIPAL: boss + tarefas ── */
+    .main-row {
+      display: grid;
+      grid-template-columns: 400px 1fr;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
 
-      /* Alturas mínimas iniciais */
-      #frame-tarefas {
-        min-height: 200px;
-      }
-      #frame-financas {
-        min-height: 300px;
-      }
-      #frame-valorant {
-        min-height: 450px;
-      }
-      #frame-rpg {
-        min-height: 520px;
-      }
-      #frame-futebol {
-        min-height: 450px;
-      }
+    /* ── ROW SECUNDÁRIA: demais módulos ── */
+    .secondary-row {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
 
-      /* 🔒 MODAL DE SENHA ESCURO */
-      .modal-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.85);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        z-index: 9999;
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.2s ease;
-      }
+    /* ── MÓDULO GENÉRICO ── */
+    .module {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      position: relative;
+    }
 
-      .modal-overlay.active {
-        opacity: 1;
-        pointer-events: auto;
-      }
+    .module::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent 0%, var(--accent) 50%, transparent 100%);
+      opacity: 0.4;
+    }
 
-      .modal-box {
-        background: #141b24;
-        border: 1px solid #ff4655;
-        padding: 25px;
-        border-radius: 8px;
-        text-align: center;
-        box-shadow: 0 0 20px rgba(255, 70, 85, 0.2);
-        max-width: 320px;
-        width: 100%;
-      }
+    .module.rpg-module::before {
+      background: linear-gradient(90deg, transparent 0%, var(--red) 50%, transparent 100%);
+    }
 
-      .modal-box h3 {
-        margin-top: 0;
-        font-family: "Montserrat", sans-serif;
-        font-size: 1.1rem;
-        letter-spacing: 1px;
-      }
+    /* ── CABEÇALHO DO MÓDULO ── */
+    .module-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 9px 14px;
+      background: rgba(0,0,0,0.3);
+      border-bottom: 1px solid var(--border);
+    }
 
-      .modal-box input {
-        width: 100%;
-        padding: 10px;
-        margin: 15px 0;
-        background: #0b0e14;
-        border: 1px solid var(--border-color);
-        color: white;
-        border-radius: 4px;
-        text-align: center;
-        font-size: 1.1rem;
-        letter-spacing: 4px;
-        box-sizing: border-box;
-      }
+    .module-title {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--dim);
+    }
 
-      .modal-box input:focus {
-        border-color: #ff4655;
-        outline: none;
-      }
+    .module-controls {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
 
-      .modal-buttons {
-        display: flex;
-        gap: 10px;
-      }
+    /* ── BOTÃO TOGGLE ── */
+    .toggle-btn {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.65rem;
+      font-weight: bold;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border: 1px solid var(--red);
+      background: transparent;
+      color: var(--red);
+      border-radius: 3px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .toggle-btn:hover { background: var(--glow-red); }
+    .toggle-btn.off { border-color: var(--green); color: var(--green); }
+    .toggle-btn.off:hover { background: rgba(0,255,136,0.1); }
 
-      .modal-btn {
-        flex: 1;
-        padding: 10px;
-        border: none;
-        border-radius: 4px;
-        font-weight: bold;
-        cursor: pointer;
-        text-transform: uppercase;
-        font-size: 0.8rem;
-      }
+    /* ── IFRAME ── */
+    .module-frame {
+      width: 100%;
+      border: none;
+      display: block;
+      transition: height 0.3s ease;
+    }
 
-      .btn-confirm {
-        background: #00ff87;
-        color: #0b0e14;
-      }
+    #frame-rpg    { height: 420px; }
+    #frame-tarefas { height: 600px; }
+    #frame-financas { height: 320px; }
+    #frame-valorant { height: 460px; }
+    #frame-futebol  { height: 460px; }
 
-      .btn-cancel {
-        background: #232d38;
-        color: #a0a5b5;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="container">
-      <header>
-        <h1>PAINEL <span style="color: var(--purple)">PRIME</span></h1>
-      </header>
+    /* ── MODAL ── */
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 9999;
+      background: rgba(0,0,0,0.9);
+      display: flex; justify-content: center; align-items: center;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.2s;
+      backdrop-filter: blur(4px);
+    }
+    .modal-overlay.active { opacity: 1; pointer-events: auto; }
 
-      <div class="module-container" id="container-rpg">
-        <div class="module-header">
-          <span class="module-title">RPG Boss Battle - Conquistas</span>
-          <button class="toggle-btn" onclick="controlePainel('rpg')">
-            Desligar
-          </button>
-        </div>
-        <iframe
-          src="rpg_boss.html"
-          class="module-frame"
-          id="frame-rpg"
-        ></iframe>
-      </div>
+    .modal-box {
+      background: var(--surface2);
+      border: 1px solid var(--accent);
+      border-radius: 10px;
+      padding: 28px;
+      text-align: center;
+      width: 300px;
+      box-shadow: 0 0 40px var(--glow-purple);
+    }
 
-      <div class="grid-main">
-        <div class="module-container" id="container-tarefas">
-          <div class="module-header">
-            <span class="module-title">Gerenciador de Tarefas</span>
-            <button class="toggle-btn" onclick="controlePainel('tarefas')">
-              Desligar
-            </button>
-          </div>
-          <iframe
-            src="tarefas.html"
-            class="module-frame"
-            id="frame-tarefas"
-          ></iframe>
-        </div>
+    .modal-box h3 {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1.1rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 6px;
+    }
+    .modal-box p { font-size: 0.75rem; color: var(--dim); margin-bottom: 16px; }
 
-        <div class="module-container" id="container-financas">
-          <div class="module-header">
-            <span class="module-title">Fluxo Financeiro</span>
-            <button class="toggle-btn" onclick="controlePainel('financas')">
-              Desligar
-            </button>
-          </div>
-          <iframe
-            src="financas.html"
-            class="module-frame"
-            id="frame-financas"
-          ></iframe>
-        </div>
+    .modal-box input {
+      width: 100%;
+      padding: 10px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 6px;
+      text-align: center;
+      font-size: 1.2rem;
+      letter-spacing: 6px;
+      font-family: 'Share Tech Mono', monospace;
+      margin-bottom: 14px;
+    }
+    .modal-box input:focus { border-color: var(--accent); outline: none; }
 
-        <div class="module-container" id="container-valorant">
-          <div class="module-header">
-            <span class="module-title">Estatísticas Valorant</span>
-            <button class="toggle-btn" onclick="controlePainel('valorant')">
-              Desligar
-            </button>
-          </div>
-          <iframe
-            src="valorant.html"
-            class="module-frame"
-            id="frame-valorant"
-          ></iframe>
-        </div>
+    .modal-buttons { display: flex; gap: 10px; }
+    .modal-btn {
+      flex: 1; padding: 10px; border: none; border-radius: 6px;
+      font-family: 'Rajdhani', sans-serif; font-size: 0.85rem; font-weight: 700;
+      letter-spacing: 1px; text-transform: uppercase; cursor: pointer;
+    }
+    .btn-confirm { background: var(--accent); color: #fff; }
+    .btn-cancel  { background: var(--border); color: var(--dim); }
+  </style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="logo">PAINEL <span>PRIME</span></div>
+    <div class="header-status">
+      <span class="status-pill live">ONLINE</span>
+      <span class="status-pill" id="clock">--:--</span>
+    </div>
+  </header>
 
-        <div class="module-container" id="container-futebol">
-          <div class="module-header">
-            <span class="module-title">Resultados Futebol</span>
-            <button class="toggle-btn" onclick="controlePainel('futebol')">
-              Desligar
-            </button>
-          </div>
-          <iframe
-            src="futebol.html"
-            class="module-frame"
-            id="frame-futebol"
-          ></iframe>
+  <!-- ROW PRINCIPAL: Boss (esquerda) + Tarefas (direita) -->
+  <div class="main-row">
+    <!-- BOSS -->
+    <div class="module rpg-module" id="container-rpg">
+      <div class="module-header">
+        <span class="module-title">⚔ Boss Battle</span>
+        <div class="module-controls">
+          <button class="toggle-btn" onclick="controlePainel('rpg')">Desligar</button>
         </div>
       </div>
+      <iframe src="rpg_boss.html" class="module-frame" id="frame-rpg"></iframe>
     </div>
 
-    <div class="modal-overlay" id="modal-senha">
-      <div class="modal-box">
-        <h3>Acesso Restrito</h3>
-        <p style="font-size: 0.8rem; color: #888; margin: 0">
-          Insira a credencial para ativar o painel
-        </p>
-        <input
-          type="password"
-          id="input-senha"
-          placeholder="••••"
-          maxlength="8"
-        />
-        <div class="modal-buttons">
-          <button class="modal-btn btn-cancel" onclick="fecharModal()">
-            Cancelar
-          </button>
-          <button class="modal-btn btn-confirm" onclick="validarSenha()">
-            Confirmar
-          </button>
+    <!-- TAREFAS -->
+    <div class="module" id="container-tarefas">
+      <div class="module-header">
+        <span class="module-title">📋 Gerenciador de Tarefas</span>
+        <div class="module-controls">
+          <button class="toggle-btn" onclick="controlePainel('tarefas')">Desligar</button>
         </div>
       </div>
+      <iframe src="tarefas.html" class="module-frame" id="frame-tarefas"></iframe>
+    </div>
+  </div>
+
+  <!-- ROW SECUNDÁRIA -->
+  <div class="secondary-row">
+    <div class="module" id="container-financas">
+      <div class="module-header">
+        <span class="module-title">💰 Fluxo Financeiro</span>
+        <button class="toggle-btn" onclick="controlePainel('financas')">Desligar</button>
+      </div>
+      <iframe src="financas.html" class="module-frame" id="frame-financas"></iframe>
     </div>
 
-    <script>
-      const SENHA_CORRETA = "08052021"; // 🔑 Altere aqui a sua senha de ativação
-      let painelPendenteAtivacao = null;
+    <div class="module" id="container-valorant">
+      <div class="module-header">
+        <span class="module-title">🎮 Estatísticas Valorant</span>
+        <button class="toggle-btn" onclick="controlePainel('valorant')">Desligar</button>
+      </div>
+      <iframe src="valorant.html" class="module-frame" id="frame-valorant"></iframe>
+    </div>
 
-      // Ouvinte de mensagens para redimensionamento do Iframe
-      window.addEventListener(
-        "message",
-        function (e) {
-          if (e.data.height && e.data.id) {
-            var frame = document.getElementById(e.data.id);
-            if (frame && frame.style.display !== "none") {
-              frame.style.height = e.data.height + 30 + "px";
-            }
-          }
-        },
-        false,
-      );
+    <div class="module" id="container-futebol">
+      <div class="module-header">
+        <span class="module-title">⚽ Resultados Futebol</span>
+        <button class="toggle-btn" onclick="controlePainel('futebol')">Desligar</button>
+      </div>
+      <iframe src="futebol.html" class="module-frame" id="frame-futebol"></iframe>
+    </div>
+  </div>
+</div>
 
-      // 💾 FUNÇÃO EXECUTADA AO CARREGAR A PÁGINA (Verifica o que estava desligado)
-      function aplicarEstadoInicial() {
-        const paineis = ["tarefas", "rpg", "financas", "valorant", "futebol"];
+<!-- MODAL DE SENHA -->
+<div class="modal-overlay" id="modal-senha">
+  <div class="modal-box">
+    <h3>Acesso Restrito</h3>
+    <p>Insira a credencial para ativar o painel</p>
+    <input type="password" id="input-senha" placeholder="••••" maxlength="8"/>
+    <div class="modal-buttons">
+      <button class="modal-btn btn-cancel" onclick="fecharModal()">Cancelar</button>
+      <button class="modal-btn btn-confirm" onclick="validarSenha()">Confirmar</button>
+    </div>
+  </div>
+</div>
 
-        paineis.forEach((id) => {
-          // Procura se o navegador salvou que esse painel devia estar "off"
-          const estadoSalvo = localStorage.getItem(`painel-${id}`);
+<script>
+  const SENHA_CORRETA = "08052021";
+  let painelPendenteAtivacao = null;
 
-          if (estadoSalvo === "off") {
-            const container = document.getElementById(`container-${id}`);
-            const iframe = document.getElementById(`frame-${id}`);
-            const botao = container.querySelector(".toggle-btn");
+  // Relógio
+  function atualizarRelogio() {
+    const agora = new Date();
+    document.getElementById('clock').innerText =
+      agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  }
+  setInterval(atualizarRelogio, 1000);
+  atualizarRelogio();
 
-            iframe.style.display = "none";
-            botao.textContent = "Ligar";
-            botao.classList.add("off");
-            iframe.style.height = "0px";
-          }
-        });
+  // Mensagens dos iframes (resize + dano no boss)
+  window.addEventListener('message', function(e) {
+    // Resize de iframe
+    if (e.data.height && e.data.id) {
+      const frame = document.getElementById(e.data.id);
+      if (frame && frame.style.display !== 'none') {
+        frame.style.height = (e.data.height + 20) + 'px';
       }
+    }
 
-      // Função mestra de ligar / desligar
-      function controlePainel(idPainel) {
-        const container = document.getElementById(`container-${idPainel}`);
-        const iframe = document.getElementById(`frame-${idPainel}`);
-        const botao = container.querySelector(".toggle-btn");
-
-        if (iframe.style.display !== "none") {
-          // 🔴 DESLIGAR: Salva o estado "off" no navegador para o F5 não resetar
-          iframe.style.display = "none";
-          botao.textContent = "Ligar";
-          botao.classList.add("off");
-
-          iframe.dataset.antigaAltura = iframe.style.height;
-          iframe.style.height = "0px";
-
-          localStorage.setItem(`painel-${idPainel}`, "off"); // Guardou na memória
-        } else {
-          // 🟢 LIGAR: Abre o modal para pedir a credencial
-          painelPendenteAtivacao = idPainel;
-          abrirModal();
-        }
+    // Tarefa concluída → propaga dano para o boss
+    if (e.data.action === 'tarefaConcluida') {
+      const frameBoss = document.getElementById('frame-rpg');
+      if (frameBoss && frameBoss.style.display !== 'none') {
+        frameBoss.contentWindow.postMessage({
+          action: 'triggerDmg',
+          dano: e.data.dano || 10
+        }, '*');
       }
+    }
+  });
 
-      function abrirModal() {
-        const modal = document.getElementById("modal-senha");
-        const input = document.getElementById("input-senha");
-        input.value = "";
-        modal.classList.add("active");
-        input.focus();
+  function aplicarEstadoInicial() {
+    ['tarefas','rpg','financas','valorant','futebol'].forEach(id => {
+      if (localStorage.getItem(`painel-${id}`) === 'off') {
+        const container = document.getElementById(`container-${id}`);
+        const iframe    = document.getElementById(`frame-${id}`);
+        const botao     = container.querySelector('.toggle-btn');
+        iframe.style.display = 'none';
+        iframe.style.height  = '0px';
+        botao.textContent = 'Ligar';
+        botao.classList.add('off');
       }
+    });
+  }
 
-      function fecharModal() {
-        document.getElementById("modal-senha").classList.remove("active");
-        painelPendenteAtivacao = null;
-      }
+  function controlePainel(id) {
+    const container = document.getElementById(`container-${id}`);
+    const iframe    = document.getElementById(`frame-${id}`);
+    const botao     = container.querySelector('.toggle-btn');
 
-      function validarSenha() {
-        const input = document.getElementById("input-senha");
+    if (iframe.style.display !== 'none') {
+      iframe.dataset.antigaAltura = iframe.style.height;
+      iframe.style.display = 'none';
+      iframe.style.height  = '0px';
+      botao.textContent = 'Ligar';
+      botao.classList.add('off');
+      localStorage.setItem(`painel-${id}`, 'off');
+    } else {
+      painelPendenteAtivacao = id;
+      abrirModal();
+    }
+  }
 
-        if (input.value === SENHA_CORRETA) {
-          const id = painelPendenteAtivacao;
-          const container = document.getElementById(`container-${id}`);
-          const iframe = document.getElementById(`frame-${id}`);
-          const botao = container.querySelector(".toggle-btn");
+  function abrirModal() {
+    const input = document.getElementById('input-senha');
+    input.value = '';
+    document.getElementById('modal-senha').classList.add('active');
+    input.focus();
+  }
 
-          iframe.style.display = "block";
-          iframe.style.height = iframe.dataset.antigaAltura || "450px";
-          botao.textContent = "Desligar";
-          botao.classList.remove("off");
+  function fecharModal() {
+    document.getElementById('modal-senha').classList.remove('active');
+    painelPendenteAtivacao = null;
+  }
 
-          // Limpa a memória para que ele nasça ligado no próximo F5
-          localStorage.removeItem(`painel-${id}`);
+  function validarSenha() {
+    const input = document.getElementById('input-senha');
+    if (input.value === SENHA_CORRETA) {
+      const id        = painelPendenteAtivacao;
+      const container = document.getElementById(`container-${id}`);
+      const iframe    = document.getElementById(`frame-${id}`);
+      const botao     = container.querySelector('.toggle-btn');
+      iframe.style.display = 'block';
+      iframe.style.height  = iframe.dataset.antigaAltura || '420px';
+      botao.textContent = 'Desligar';
+      botao.classList.remove('off');
+      localStorage.removeItem(`painel-${id}`);
+      fecharModal();
+    } else {
+      alert('Senha incorreta!');
+      input.value = '';
+      input.focus();
+    }
+  }
 
-          fecharModal();
+  document.getElementById('input-senha').addEventListener('keyup', e => {
+    if (e.key === 'Enter') validarSenha();
+  });
 
-          setTimeout(() => {
-            window.dispatchEvent(new Event("resize"));
-          }, 100);
-        } else {
-          alert("Senha incorreta! Acesso negado.");
-          input.value = "";
-          input.focus();
-        }
-      }
-
-      document
-        .getElementById("input-senha")
-        .addEventListener("keyup", function (event) {
-          if (event.key === "Enter") {
-            validarSenha();
-          }
-        });
-
-      // Executa a checagem assim que a página abre
-      aplicarEstadoInicial();
-    </script>
-  </body>
+  aplicarEstadoInicial();
+</script>
+</body>
 </html>

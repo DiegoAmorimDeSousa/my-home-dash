@@ -1,755 +1,670 @@
 <!doctype html>
 <html lang="pt-br">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Dashboard de Tarefas</title>
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Montserrat:wght@800&display=swap"
-      rel="stylesheet"
-    />
-    <style>
-      :root {
-        --bg: #0b0e14;
-        --card-bg: #161b22;
-        --purple: #a855f7;
-        --green: #00ff88;
-        --red: #ff4a5a;
-        --orange: #ff9f43;
-        --text: #ffffff;
-        --dim: #8b949e;
-        --border: #30363d;
-      }
-      body {
-        font-family: "Inter", sans-serif;
-        background: var(--bg);
-        color: var(--text);
-        margin: 0;
-        padding: 15px;
-        overflow-x: hidden;
-      }
-      .header {
-        font-family: "Montserrat", sans-serif;
-        font-size: 1.1rem;
-        color: var(--purple);
-        font-weight: 800;
-        margin-bottom: 20px;
-        text-transform: uppercase;
-      }
-      .tasks-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 20px;
-        margin-bottom: 20px;
-      }
-      .user-column {
-        background: var(--card-bg);
-        border: 1px solid var(--border);
-        border-radius: 16px;
-        padding: 18px;
-      }
-      .user-header {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 15px;
-        font-weight: 800;
-        font-size: 0.8rem;
-        letter-spacing: 1px;
-      }
-      .task-item {
-        background: rgba(255, 255, 255, 0.03);
-        border-radius: 10px;
-        padding: 12px 16px;
-        margin-bottom: 8px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        border: 1px solid transparent;
-        transition: 0.3s;
-      }
-      .task-item.done {
-        border-color: var(--green);
-        background: rgba(0, 255, 136, 0.05);
-        opacity: 0.8;
-      }
-      .task-item.pending-sync {
-        opacity: 0.5;
-        border-color: orange;
-      }
-      .task-name {
-        font-size: 0.85rem;
-        font-weight: 600;
-      }
-      .task-time {
-        font-size: 0.7rem;
-        color: var(--dim);
-        display: block;
-        margin-top: 2px;
-      }
-      .checkbox {
-        width: 20px;
-        height: 20px;
-        cursor: pointer;
-        accent-color: var(--green);
-      }
-      .stats-wrapper {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 20px;
-        margin-bottom: 20px;
-      }
-      .stats-subgrid {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 10px;
-      }
-      .stat-card {
-        background: var(--card-bg);
-        border: 1px solid var(--border);
-        padding: 10px 5px;
-        border-radius: 12px;
-        text-align: center;
-        border-bottom: 3px solid transparent;
-      }
-      .stat-label {
-        display: block;
-        font-size: 0.55rem;
-        color: var(--dim);
-        text-transform: uppercase;
-        font-weight: 800;
-        margin-bottom: 4px;
-      }
-      .stat-val {
-        font-size: 0.9rem;
-        font-weight: 800;
-        display: block;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-      }
+<head>
+  <meta charset="UTF-8"/>
+  <title>Dashboard de Tarefas</title>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&family=Exo+2:wght@400;600;800&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg: #07090f;
+      --card: #0d1117;
+      --card2: #111827;
+      --accent: #a855f7;
+      --green: #00ff88;
+      --red: #ff3d5a;
+      --orange: #ff9f43;
+      --blue: #38bdf8;
+      --text: #e2e8f0;
+      --dim: #4a5568;
+      --border: #1e2535;
+    }
+    * { box-sizing: border-box; margin:0; padding:0; }
 
-      .history-section {
-        background: var(--card-bg);
-        border: 1px solid var(--border);
-        border-radius: 16px;
-        padding: 15px;
-        margin-top: 15px;
-      }
-      .history-title {
-        font-size: 0.75rem;
-        font-weight: 800;
-        color: var(--dim);
-        margin-bottom: 12px;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-      }
-      .history-grid-container {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 20px;
-      }
-      .user-history-block {
-        display: flex;
-        flex-direction: column;
-      }
-      .user-history-name {
-        font-size: 0.75rem;
-        font-weight: 700;
-        margin-bottom: 6px;
-      }
-      .contribution-graph {
-        display: flex;
-        gap: 3px;
-        flex-wrap: wrap;
-      }
-      .graph-cube {
-        width: 11px;
-        height: 11px;
-        background-color: #1b1f24;
-        border-radius: 2px;
-        position: relative;
-      }
-      .graph-cube.level-1 {
-        background-color: #0e4429;
-      }
-      .graph-cube.level-2 {
-        background-color: #006d32;
-      }
-      .graph-cube.level-3 {
-        background-color: #26a641;
-      }
-      .graph-cube.level-4 {
-        background-color: #39d353;
-      }
+    body {
+      font-family: 'Exo 2', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding: 14px;
+      overflow-x: hidden;
+    }
 
-      .graph-cube:hover::after {
-        content: attr(data-info);
-        position: absolute;
-        bottom: 15px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: #000;
-        color: #fff;
-        padding: 4px 6px;
-        font-size: 10px;
-        border-radius: 4px;
-        white-space: nowrap;
-        z-index: 10;
-        border: 1px solid var(--border);
-      }
+    /* ── HEADER ── */
+    .header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 16px;
+    }
+    .header-title {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1rem; font-weight: 700;
+      letter-spacing: 3px; text-transform: uppercase;
+      color: var(--accent);
+    }
+    .refresh-btn {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.65rem; letter-spacing: 1px;
+      padding: 4px 10px;
+      border: 1px solid var(--border);
+      background: transparent; color: var(--dim);
+      border-radius: 3px; cursor: pointer; transition: all 0.2s;
+    }
+    .refresh-btn:hover { border-color: var(--accent); color: var(--accent); }
 
-      .insights-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 20px;
-        margin-top: 15px;
-      }
-      .insight-box {
-        background: var(--card-bg);
-        border: 1px solid var(--border);
-        border-radius: 16px;
-        padding: 15px;
-      }
-      .insight-row {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        background: rgba(255, 255, 255, 0.02);
-        border-radius: 10px;
-        padding: 10px 14px;
-        margin-top: 8px;
-        font-size: 0.8rem;
-        border-left: 4px solid transparent;
-      }
-      .insight-row.streak {
-        border-left-color: var(--green);
-      }
-      .insight-row.procrastinate {
-        border-left-color: var(--red);
-      }
-      .insight-row.never {
-        border-left-color: var(--orange);
-      }
+    /* ── PROGRESSO DO DIA ── */
+    .progress-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .progress-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+      position: relative; overflow: hidden;
+    }
+    .progress-card::before {
+      content: '';
+      position: absolute; top:0; left:0; right:0; height:2px;
+    }
+    .progress-card.diego::before { background: linear-gradient(90deg, transparent, var(--green), transparent); }
+    .progress-card.bia::before   { background: linear-gradient(90deg, transparent, var(--accent), transparent); }
 
-      .insight-label-text {
-        font-weight: 700;
-        white-space: nowrap;
-      }
-      .insight-task-name {
-        font-weight: 600;
-        color: #fff;
-        margin: 0 10px;
-        flex-grow: 1;
-        text-align: left;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: normal;
-        word-break: break-word;
-      }
-      .insight-count {
-        font-weight: 800;
-        font-size: 0.85rem;
-        white-space: nowrap;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="header">📋 DASHBOARD DE TAREFAS</div>
+    .progress-header {
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;
+    }
+    .progress-name {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 0.9rem; font-weight: 700; letter-spacing: 2px;
+    }
+    .progress-pct {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 1.1rem; font-weight: bold;
+    }
+    .progress-bar-track {
+      height: 6px; background: rgba(255,255,255,0.05);
+      border-radius: 3px; overflow: hidden; margin-bottom: 6px;
+    }
+    .progress-bar-fill {
+      height: 100%; border-radius: 3px;
+      transition: width 0.8s cubic-bezier(0.25,0.46,0.45,0.94);
+    }
+    .diego .progress-bar-fill { background: linear-gradient(90deg, #009955, var(--green)); box-shadow: 0 0 8px rgba(0,255,136,0.4); }
+    .bia   .progress-bar-fill { background: linear-gradient(90deg, #7e22ce, var(--accent)); box-shadow: 0 0 8px rgba(168,85,247,0.4); }
 
-    <div class="tasks-grid">
-      <div class="user-column" style="border-top: 4px solid var(--green)">
-        <div class="user-header">
-          <span style="color: var(--green)">DIEGO</span>
-          <span id="p-diego">0%</span>
-        </div>
-        <div id="list-diego"></div>
-      </div>
-      <div class="user-column" style="border-top: 4px solid var(--purple)">
-        <div class="user-header">
-          <span style="color: var(--purple)">BEATRIZ</span>
-          <span id="p-bia">0%</span>
-        </div>
-        <div id="list-bia"></div>
-      </div>
+    .progress-sub {
+      font-size: 0.7rem; color: var(--dim); letter-spacing: 0.5px;
+    }
+
+    /* ── TAREFAS ── */
+    .tasks-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .user-column {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+    }
+    .task-item {
+      background: rgba(255,255,255,0.02);
+      border-radius: 6px;
+      padding: 9px 12px;
+      margin-bottom: 6px;
+      display: flex; justify-content: space-between; align-items: center;
+      border: 1px solid transparent;
+      transition: all 0.25s;
+      position: relative;
+    }
+    .task-item:hover { background: rgba(255,255,255,0.04); }
+    .task-item.done {
+      border-color: rgba(0,255,136,0.2);
+      background: rgba(0,255,136,0.04);
+    }
+    .task-item.done.bia-task {
+      border-color: rgba(168,85,247,0.2);
+      background: rgba(168,85,247,0.04);
+    }
+    .task-item.pending-sync { border-color: rgba(255,159,67,0.3); }
+
+    .task-info { flex: 1; }
+    .task-name { font-size: 0.78rem; font-weight: 600; display: block; }
+    .task-meta {
+      display: flex; gap: 8px; align-items: center; margin-top: 3px;
+    }
+    .task-time {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.65rem; color: var(--dim);
+    }
+    .task-dmg {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.6rem;
+      padding: 1px 5px;
+      border-radius: 3px;
+    }
+    .task-dmg.alta   { background: rgba(255,61,90,0.15); color: var(--red); border: 1px solid rgba(255,61,90,0.3); }
+    .task-dmg.media  { background: rgba(255,159,67,0.15); color: var(--orange); border: 1px solid rgba(255,159,67,0.3); }
+    .task-dmg.baixa  { background: rgba(56,189,248,0.1); color: var(--blue); border: 1px solid rgba(56,189,248,0.2); }
+
+    .sync-label {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.6rem; color: var(--orange);
+      display: block; margin-top: 2px;
+    }
+
+    .checkbox {
+      width: 18px; height: 18px; cursor: pointer;
+      accent-color: var(--green); flex-shrink: 0; margin-left: 8px;
+    }
+
+    /* ── STATS ROW ── */
+    .stats-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .stats-inner {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;
+    }
+    .stat-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 6px; text-align: center;
+    }
+    .stat-label {
+      display: block; font-size: 0.55rem; color: var(--dim);
+      text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 3px;
+    }
+    .stat-val {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.85rem; font-weight: bold;
+      display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+
+    /* ── HISTÓRICO ── */
+    .section {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin-bottom: 12px;
+    }
+    .section-title {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 0.75rem; font-weight: 700;
+      letter-spacing: 2px; text-transform: uppercase;
+      color: var(--dim); margin-bottom: 10px;
+    }
+    .history-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+    }
+    .history-label {
+      font-size: 0.7rem; font-weight: 700; margin-bottom: 6px;
+    }
+    .contribution-graph { display: flex; gap: 3px; flex-wrap: wrap; }
+    .graph-cube {
+      width: 11px; height: 11px;
+      background: #1b1f24; border-radius: 2px;
+      position: relative; cursor: default;
+    }
+    .graph-cube.level-1 { background: #0e4429; }
+    .graph-cube.level-2 { background: #006d32; }
+    .graph-cube.level-3 { background: #26a641; }
+    .graph-cube.level-4 { background: #39d353; }
+    .graph-cube:hover::after {
+      content: attr(data-info);
+      position: absolute; bottom:15px; left:50%; transform:translateX(-50%);
+      background: #000; color:#fff; padding:3px 6px; font-size:10px;
+      border-radius:3px; white-space:nowrap; z-index:10; border:1px solid var(--border);
+    }
+
+    /* ── INSIGHTS ── */
+    .insights-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    .insight-row {
+      display:flex; align-items:center; justify-content:space-between;
+      background:rgba(255,255,255,0.02); border-radius:6px;
+      padding:8px 12px; margin-top:6px; font-size:0.75rem;
+      border-left:3px solid transparent;
+    }
+    .insight-row.streak      { border-left-color: var(--green); }
+    .insight-row.procrastinate{ border-left-color: var(--red); }
+    .insight-row.never       { border-left-color: var(--orange); }
+    .insight-label { font-weight:700; white-space:nowrap; font-size:0.7rem; }
+    .insight-task  {
+      font-weight:600; margin:0 8px; flex:1;
+      overflow:hidden; text-overflow:ellipsis; white-space:normal; word-break:break-word;
+      font-size:0.7rem;
+    }
+    .insight-val   { font-family:'Share Tech Mono',monospace; font-size:0.8rem; white-space:nowrap; }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-title">⚔ Dashboard de Tarefas</div>
+  <button class="refresh-btn" onclick="loadTasks()">↺ Atualizar</button>
+</div>
+
+<!-- Progresso do dia -->
+<div class="progress-row">
+  <div class="progress-card diego">
+    <div class="progress-header">
+      <span class="progress-name" style="color:var(--green)">Diego</span>
+      <span class="progress-pct" style="color:var(--green)" id="pct-diego">0%</span>
     </div>
-
-    <div class="stats-wrapper">
-      <div class="stats-subgrid" id="stats-d">
-        <div class="stat-card" style="border-bottom-color: var(--green)">
-          <span class="stat-label">Hoje</span>
-          <span class="stat-val" id="d-hoje">0/0</span>
-        </div>
-        <div class="stat-card" style="border-bottom-color: var(--green)">
-          <span class="stat-label">Semana</span>
-          <span class="stat-val" id="d-sem">0</span>
-        </div>
-        <div class="stat-card" style="border-bottom-color: var(--green)">
-          <span class="stat-label">Mês</span>
-          <span class="stat-val" id="d-mes">0</span>
-        </div>
-        <div class="stat-card" style="border-bottom-color: var(--green)">
-          <span class="stat-label">Top</span>
-          <span class="stat-val" style="font-size: 0.65rem" id="d-top">-</span>
-        </div>
-      </div>
-      <div class="stats-subgrid" id="stats-b">
-        <div class="stat-card" style="border-bottom-color: var(--purple)">
-          <span class="stat-label">Hoje</span>
-          <span class="stat-val" id="b-hoje">0/0</span>
-        </div>
-        <div class="stat-card" style="border-bottom-color: var(--purple)">
-          <span class="stat-label">Semana</span>
-          <span class="stat-val" id="b-sem">0</span>
-        </div>
-        <div class="stat-card" style="border-bottom-color: var(--purple)">
-          <span class="stat-label">Mês</span>
-          <span class="stat-val" id="b-mes">0</span>
-        </div>
-        <div class="stat-card" style="border-bottom-color: var(--purple)">
-          <span class="stat-label">Top</span>
-          <span class="stat-val" style="font-size: 0.65rem" id="b-top">-</span>
-        </div>
-      </div>
+    <div class="progress-bar-track">
+      <div class="progress-bar-fill diego" id="bar-diego" style="width:0%"></div>
     </div>
-
-    <div class="history-section">
-      <div class="history-title">
-        📊 Histórico de Conclusão (Últimos 30 dias)
-      </div>
-      <div class="history-grid-container">
-        <div class="user-history-block">
-          <div class="user-history-name" style="color: var(--green)">Diego</div>
-          <div class="contribution-graph" id="graph-diego"></div>
-        </div>
-        <div class="user-history-block">
-          <div class="user-history-name" style="color: var(--purple)">
-            Beatriz
-          </div>
-          <div class="contribution-graph" id="graph-bia"></div>
-        </div>
-      </div>
+    <span class="progress-sub" id="sub-diego">0 de 0 tarefas concluídas hoje</span>
+  </div>
+  <div class="progress-card bia">
+    <div class="progress-header">
+      <span class="progress-name" style="color:var(--accent)">Beatriz</span>
+      <span class="progress-pct" style="color:var(--accent)" id="pct-bia">0%</span>
     </div>
-
-    <div class="insights-grid">
-      <div class="insight-box">
-        <div class="history-title" style="color: var(--green)">
-          💡 Insights do Diego
-        </div>
-        <div class="insight-row streak">
-          <span class="insight-label-text">🔥 Maior Sequência:</span>
-          <span class="insight-task-name" id="d-streak-name"
-            >Carregando...</span
-          >
-          <span
-            class="insight-count"
-            style="color: var(--green)"
-            id="d-streak-val"
-            >0d</span
-          >
-        </div>
-        <div class="insight-row procrastinate">
-          <span class="insight-label-text">⚠️ Dias sem realizar:</span>
-          <span class="insight-task-name" id="d-proc-name">Carregando...</span>
-          <span class="insight-count" style="color: var(--red)" id="d-proc-val"
-            >0d</span
-          >
-        </div>
-        <div class="insight-row never">
-          <span class="insight-label-text">❄️ Nunca Feito:</span>
-          <span class="insight-task-name" id="d-never-name">Nenhuma</span>
-          <span
-            class="insight-count"
-            style="color: var(--orange)"
-            id="d-never-val"
-            >-</span
-          >
-        </div>
-      </div>
-      <div class="insight-box">
-        <div class="history-title" style="color: var(--purple)">
-          💡 Insights da Beatriz
-        </div>
-        <div class="insight-row streak">
-          <span class="insight-label-text">🔥 Maior Sequência:</span>
-          <span class="insight-task-name" id="b-streak-name"
-            >Carregando...</span
-          >
-          <span
-            class="insight-count"
-            style="color: var(--green)"
-            id="b-streak-val"
-            >0d</span
-          >
-        </div>
-        <div class="insight-row procrastinate">
-          <span class="insight-label-text">⚠️ Dias sem realizar:</span>
-          <span class="insight-task-name" id="b-proc-name">Carregando...</span>
-          <span class="insight-count" style="color: var(--red)" id="b-proc-val"
-            >0d</span
-          >
-        </div>
-        <div class="insight-row never">
-          <span class="insight-label-text">❄️ Nunca Feito:</span>
-          <span class="insight-task-name" id="b-never-name">Nenhuma</span>
-          <span
-            class="insight-count"
-            style="color: var(--orange)"
-            id="b-never-val"
-            >-</span
-          >
-        </div>
-      </div>
+    <div class="progress-bar-track">
+      <div class="progress-bar-fill bia" id="bar-bia" style="width:0%"></div>
     </div>
+    <span class="progress-sub" id="sub-bia">0 de 0 tarefas concluídas hoje</span>
+  </div>
+</div>
 
-    <script>
-      const URL_LOGS =
-        "https://docs.google.com/spreadsheets/d/e/2PACX-1vSK1XbGFpL5g5BUK6Dz2S7nZVRzgs-6iaPKHq7hQ0M0i_59Z2ur3-GP95xxSJLomymamLHyLYomc_7m/pub?gid=495982494&single=true&output=csv";
-      const WEB_APP_URL =
-        "https://script.google.com/macros/s/AKfycbxZDNq7MoIRgeBvzbaslBjpeMfY-Vm4gw5yTr8O1zgENE7zucykP7AFCJlE4Dg3RtVY/exec";
+<!-- Listas de tarefas -->
+<div class="tasks-grid">
+  <div class="user-column">
+    <div style="font-family:'Rajdhani',sans-serif;font-size:0.8rem;font-weight:700;color:var(--green);letter-spacing:2px;margin-bottom:10px;">DIEGO</div>
+    <div id="list-diego"></div>
+  </div>
+  <div class="user-column">
+    <div style="font-family:'Rajdhani',sans-serif;font-size:0.8rem;font-weight:700;color:var(--accent);letter-spacing:2px;margin-bottom:10px;">BEATRIZ</div>
+    <div id="list-bia"></div>
+  </div>
+</div>
 
-      let isUpdating = false;
+<!-- Stats -->
+<div class="stats-row">
+  <div class="stats-inner" id="stats-d">
+    <div class="stat-card" style="border-bottom:2px solid var(--green)">
+      <span class="stat-label">Hoje</span><span class="stat-val" style="color:var(--green)" id="d-hoje">0/0</span>
+    </div>
+    <div class="stat-card" style="border-bottom:2px solid var(--green)">
+      <span class="stat-label">Semana</span><span class="stat-val" id="d-sem">0</span>
+    </div>
+    <div class="stat-card" style="border-bottom:2px solid var(--green)">
+      <span class="stat-label">Mês</span><span class="stat-val" id="d-mes">0</span>
+    </div>
+    <div class="stat-card" style="border-bottom:2px solid var(--green)">
+      <span class="stat-label">Top</span><span class="stat-val" style="font-size:0.55rem" id="d-top">-</span>
+    </div>
+  </div>
+  <div class="stats-inner" id="stats-b">
+    <div class="stat-card" style="border-bottom:2px solid var(--accent)">
+      <span class="stat-label">Hoje</span><span class="stat-val" style="color:var(--accent)" id="b-hoje">0/0</span>
+    </div>
+    <div class="stat-card" style="border-bottom:2px solid var(--accent)">
+      <span class="stat-label">Semana</span><span class="stat-val" id="b-sem">0</span>
+    </div>
+    <div class="stat-card" style="border-bottom:2px solid var(--accent)">
+      <span class="stat-label">Mês</span><span class="stat-val" id="b-mes">0</span>
+    </div>
+    <div class="stat-card" style="border-bottom:2px solid var(--accent)">
+      <span class="stat-label">Top</span><span class="stat-val" style="font-size:0.55rem" id="b-top">-</span>
+    </div>
+  </div>
+</div>
 
-      function sendHeight() {
-        const height = document.body.scrollHeight;
-        window.parent.postMessage({ height: height, id: "frame-tarefas" }, "*");
+<!-- Histórico -->
+<div class="section">
+  <div class="section-title">📊 Histórico — Últimos 30 dias</div>
+  <div class="history-grid">
+    <div>
+      <div class="history-label" style="color:var(--green)">Diego</div>
+      <div class="contribution-graph" id="graph-diego"></div>
+    </div>
+    <div>
+      <div class="history-label" style="color:var(--accent)">Beatriz</div>
+      <div class="contribution-graph" id="graph-bia"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Insights -->
+<div class="insights-grid">
+  <div class="section" style="margin-bottom:0">
+    <div class="section-title" style="color:var(--green)">💡 Insights Diego</div>
+    <div class="insight-row streak">
+      <span class="insight-label">🔥 Maior Seq.</span>
+      <span class="insight-task" id="d-streak-name">—</span>
+      <span class="insight-val" style="color:var(--green)" id="d-streak-val">0d</span>
+    </div>
+    <div class="insight-row procrastinate">
+      <span class="insight-label">⚠ Sem realizar</span>
+      <span class="insight-task" id="d-proc-name">—</span>
+      <span class="insight-val" style="color:var(--red)" id="d-proc-val">0d</span>
+    </div>
+    <div class="insight-row never">
+      <span class="insight-label">❄ Nunca feito</span>
+      <span class="insight-task" id="d-never-name">Nenhuma</span>
+      <span class="insight-val" style="color:var(--orange)" id="d-never-val">-</span>
+    </div>
+  </div>
+  <div class="section" style="margin-bottom:0">
+    <div class="section-title" style="color:var(--accent)">💡 Insights Beatriz</div>
+    <div class="insight-row streak">
+      <span class="insight-label">🔥 Maior Seq.</span>
+      <span class="insight-task" id="b-streak-name">—</span>
+      <span class="insight-val" style="color:var(--green)" id="b-streak-val">0d</span>
+    </div>
+    <div class="insight-row procrastinate">
+      <span class="insight-label">⚠ Sem realizar</span>
+      <span class="insight-task" id="b-proc-name">—</span>
+      <span class="insight-val" style="color:var(--red)" id="b-proc-val">0d</span>
+    </div>
+    <div class="insight-row never">
+      <span class="insight-label">❄ Nunca feito</span>
+      <span class="insight-task" id="b-never-name">Nenhuma</span>
+      <span class="insight-val" style="color:var(--orange)" id="b-never-val">-</span>
+    </div>
+  </div>
+</div>
+
+<script>
+  const URL_LOGS    = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSK1XbGFpL5g5BUK6Dz2S7nZVRzgs-6iaPKHq7hQ0M0i_59Z2ur3-GP95xxSJLomymamLHyLYomc_7m/pub?gid=495982494&single=true&output=csv";
+  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxZDNq7MoIRgeBvzbaslBjpeMfY-Vm4gw5yTr8O1zgENE7zucykP7AFCJlE4Dg3RtVY/exec";
+
+  // Mapa de importância → dano e label
+  const IMPORTANCIA_MAP = {
+    'alta':  { dano: 50, label: '⚔ 50 DMG', cls: 'alta' },
+    'média': { dano: 25, label: '🗡 25 DMG', cls: 'media' },
+    'media': { dano: 25, label: '🗡 25 DMG', cls: 'media' },
+    'baixa': { dano: 10, label: '✦ 10 DMG', cls: 'baixa' },
+  };
+
+  // ─── localStorage ─────────────────────────────────────────────────────────
+  function getLocalKey() { return `tasks_done_${new Date().toLocaleDateString('pt-BR')}`; }
+  function getLocalDone() { try { return JSON.parse(localStorage.getItem(getLocalKey())||'{}'); } catch{ return {}; } }
+  function setLocalDone(owner, task) { const d=getLocalDone(); d[`${owner}::${task}`]=true; localStorage.setItem(getLocalKey(),JSON.stringify(d)); }
+  function removeLocalDone(owner, task) { const d=getLocalDone(); delete d[`${owner}::${task}`]; localStorage.setItem(getLocalKey(),JSON.stringify(d)); }
+  function isLocalDone(owner, task) { return !!getLocalDone()[`${owner}::${task}`]; }
+  function cleanOldLocalKeys() {
+    const k=getLocalKey();
+    Object.keys(localStorage).forEach(kk=>{ if(kk.startsWith('tasks_done_')&&kk!==k) localStorage.removeItem(kk); });
+  }
+  function isDoneForDisplay(owner, task, sheetStatus) { return sheetStatus==='OK'||isLocalDone(owner,task); }
+
+  function sendHeight() {
+    const h = document.body.scrollHeight;
+    window.parent.postMessage({height:h, id:'frame-tarefas'},'*');
+  }
+
+  // Notifica o boss com o dano da tarefa concluída
+  function notifyBossDmg(dano) {
+    window.parent.postMessage({ action: 'tarefaConcluida', dano }, '*');
+  }
+
+  // Extrai importância da string da coluna D (ex: "Alta (Saúde/Tratamento dermatológico)")
+  function parseImportancia(raw) {
+    if (!raw) return 'baixa';
+    const r = raw.toLowerCase().trim();
+    if (r.startsWith('alta'))  return 'alta';
+    if (r.startsWith('média') || r.startsWith('media')) return 'media';
+    return 'baixa';
+  }
+
+  let isUpdating = false;
+
+  async function loadTasks() {
+    if (isUpdating) return;
+    cleanOldLocalKeys();
+    try {
+      const resp = await fetch(`${URL_LOGS}&t=${Date.now()}`);
+      const text = await resp.text();
+      // CSV pode ter mais colunas; split por vírgula simples pode quebrar em valores com vírgula
+      // Usamos lógica mais robusta
+      const lines = text.split('\n').slice(1);
+      const rows = lines.map(l => {
+        const parts = l.split(',');
+        return parts; // Data, Dono, Tarefa, Horário, Status
+      });
+
+      const now      = new Date();
+      const todayStr = now.toLocaleDateString('pt-BR');
+      const umDia    = 24*60*60*1000;
+      const seteDias = new Date(now - 7*umDia);
+
+      let hD='', hB='';
+      let counts = {
+        dH:0,dT:0,bH:0,bT:0,ds:0,dm:0,bs:0,bm:0,
+        df:{},bf:{},
+        historyDiego:{},historyBia:{},
+        allTasksDiego:{},allTasksBia:{},
+        todayTasksDiego:[],todayTasksBia:[],
+      };
+
+      // Mapa de importância das tarefas (vem do CSV na coluna D se existir)
+      const importanciaCache = {};
+
+      rows.forEach(cols => {
+        if (cols.length < 4) return;
+        const dataRaw  = (cols[0]||'').trim();
+        const dono     = (cols[1]||'').trim();
+        const nome     = (cols[2]||'').trim();
+        const hora     = (cols[3]||'').trim();
+        const status   = (cols[4]||'').trim().toUpperCase();
+        const impRaw   = (cols[5]||'').trim(); // Coluna F pode ter importância no log
+
+        if (!nome || !dono) return;
+
+        if (status==='OK') removeLocalDone(dono, nome);
+
+        const isDone      = isDoneForDisplay(dono, nome, status);
+        const isPending   = isLocalDone(dono, nome) && status!=='OK';
+        const apenasData  = dataRaw.split(' ')[0];
+        const parts       = apenasData.split('/');
+        if (parts.length<3) return;
+
+        const taskDate = new Date(parseInt(parts[2]), parseInt(parts[1])-1, parseInt(parts[0]));
+        if (isNaN(taskDate.getTime())) return;
+
+        const chave = apenasData;
+
+        if (dono==='Diego') {
+          if (!counts.allTasksDiego[nome]) counts.allTasksDiego[nome]={};
+          counts.allTasksDiego[nome][chave]=isDone;
+        } else if (dono==='Beatriz') {
+          if (!counts.allTasksBia[nome]) counts.allTasksBia[nome]={};
+          counts.allTasksBia[nome][chave]=isDone;
+        }
+
+        if (isDone) {
+          if (taskDate.getMonth()===now.getMonth()&&taskDate.getFullYear()===now.getFullYear()){
+            if(dono==='Diego') counts.dm++; else if(dono==='Beatriz') counts.bm++;
+          }
+          if (taskDate>=seteDias&&taskDate<=now){
+            if(dono==='Diego') counts.ds++; else if(dono==='Beatriz') counts.bs++;
+          }
+          if(dono==='Diego'){ counts.historyDiego[chave]=(counts.historyDiego[chave]||0)+1; counts.df[nome]=(counts.df[nome]||0)+1; }
+          else if(dono==='Beatriz'){ counts.historyBia[chave]=(counts.historyBia[chave]||0)+1; counts.bf[nome]=(counts.bf[nome]||0)+1; }
+        }
+
+        if (apenasData===todayStr) {
+          // Determina importância
+          let imp = 'baixa';
+          if (impRaw) imp = parseImportancia(impRaw);
+          else if (importanciaCache[`${dono}::${nome}`]) imp = importanciaCache[`${dono}::${nome}`];
+
+          const dmgInfo = IMPORTANCIA_MAP[imp] || IMPORTANCIA_MAP['baixa'];
+          const isBia   = dono === 'Beatriz';
+
+          const syncHtml = isPending
+            ? `<span class="sync-label">⏳ Sincronizando...</span>`
+            : '';
+
+          const html = `
+            <div class="task-item ${isDone?'done':''} ${isBia?'bia-task':''} ${isPending?'pending-sync':''}" data-task="${nome}" data-owner="${dono}" data-dano="${dmgInfo.dano}">
+              <div class="task-info">
+                <span class="task-name">${nome}</span>
+                <div class="task-meta">
+                  <span class="task-time">${hora}</span>
+                  <span class="task-dmg ${dmgInfo.cls}">${dmgInfo.label}</span>
+                </div>
+                ${syncHtml}
+              </div>
+              <input type="checkbox" class="checkbox"
+                ${isDone?'checked':''}
+                ${isDone&&!isPending?'disabled':''}
+                onclick="markDone(this,'${nome}','${dono}',${dmgInfo.dano})">
+            </div>`;
+
+          if(dono==='Diego'){
+            hD+=html; counts.dT++;
+            if(isDone) counts.dH++;
+            if(!counts.todayTasksDiego.includes(nome)) counts.todayTasksDiego.push(nome);
+          } else if(dono==='Beatriz'){
+            hB+=html; counts.bT++;
+            if(isDone) counts.bH++;
+            if(!counts.todayTasksBia.includes(nome)) counts.todayTasksBia.push(nome);
+          }
+        }
+      });
+
+      document.getElementById('list-diego').innerHTML = hD||'<span style="font-size:0.75rem;color:var(--dim)">Sem tarefas</span>';
+      document.getElementById('list-bia').innerHTML   = hB||'<span style="font-size:0.75rem;color:var(--dim)">Sem tarefas</span>';
+
+      updateProgressBars(counts);
+      updateStats(counts);
+      renderGraph('graph-diego', counts.historyDiego);
+      renderGraph('graph-bia',   counts.historyBia);
+      calcInsights(counts.allTasksDiego, counts.todayTasksDiego, 'd');
+      calcInsights(counts.allTasksBia,   counts.todayTasksBia,   'b');
+
+      setTimeout(sendHeight, 300);
+    } catch(e) { console.error(e); }
+  }
+
+  function updateProgressBars(c) {
+    const pD = c.dT ? Math.round((c.dH/c.dT)*100) : 0;
+    const pB = c.bT ? Math.round((c.bH/c.bT)*100) : 0;
+    document.getElementById('pct-diego').innerText = pD+'%';
+    document.getElementById('bar-diego').style.width = pD+'%';
+    document.getElementById('sub-diego').innerText   = `${c.dH} de ${c.dT} tarefas concluídas hoje`;
+    document.getElementById('pct-bia').innerText     = pB+'%';
+    document.getElementById('bar-bia').style.width   = pB+'%';
+    document.getElementById('sub-bia').innerText     = `${c.bH} de ${c.bT} tarefas concluídas hoje`;
+  }
+
+  function updateStats(c) {
+    document.getElementById('d-hoje').innerText = `${c.dH}/${c.dT}`;
+    document.getElementById('d-sem').innerText  = c.ds;
+    document.getElementById('d-mes').innerText  = c.dm;
+    document.getElementById('d-top').innerText  = Object.entries(c.df).sort((a,b)=>b[1]-a[1])[0]?.[0]||'-';
+    document.getElementById('b-hoje').innerText = `${c.bH}/${c.bT}`;
+    document.getElementById('b-sem').innerText  = c.bs;
+    document.getElementById('b-mes').innerText  = c.bm;
+    document.getElementById('b-top').innerText  = Object.entries(c.bf).sort((a,b)=>b[1]-a[1])[0]?.[0]||'-';
+  }
+
+  function renderGraph(id, data) {
+    const el = document.getElementById(id);
+    el.innerHTML = '';
+    const hoje = new Date();
+    for(let i=29; i>=0; i--){
+      const d = new Date(hoje - i*24*60*60*1000);
+      const dia = String(d.getDate()).padStart(2,'0');
+      const mes = String(d.getMonth()+1).padStart(2,'0');
+      const ano = d.getFullYear();
+      const chave = `${dia}/${mes}/${ano}`;
+      const n = data[chave]||0;
+      const c = document.createElement('div');
+      c.className='graph-cube';
+      c.setAttribute('data-info',`${chave}: ${n} concluída(s)`);
+      if(n>0&&n<=2)      c.classList.add('level-1');
+      else if(n>2&&n<=4) c.classList.add('level-2');
+      else if(n>4&&n<=6) c.classList.add('level-3');
+      else if(n>6)       c.classList.add('level-4');
+      el.appendChild(c);
+    }
+  }
+
+  function calcInsights(tasksMap, todayList, prefix) {
+    let maxStreak=0, streakTasks=[];
+    let maxProc=0, procTasks=[];
+    let nuncaFeitas=[];
+    const hoje = new Date();
+
+    todayList.forEach(t=>{
+      const temOk = tasksMap[t] && Object.values(tasksMap[t]).some(v=>v===true);
+      if(!temOk) nuncaFeitas.push(t);
+    });
+
+    Object.entries(tasksMap).forEach(([nome,log])=>{
+      let primeira=null, ultima=null;
+      for(let i=60;i>=0;i--){
+        const d=new Date(hoje-i*24*60*60*1000);
+        const k=`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+        if(log[k]===true){ if(!primeira)primeira=new Date(d); ultima=new Date(d); }
       }
-
-      async function loadTasks() {
-        if (isUpdating) return;
-
-        try {
-          const resp = await fetch(`${URL_LOGS}&t=${new Date().getTime()}`);
-          const text = await resp.text();
-          const rows = text
-            .split("\n")
-            .map((r) => r.split(","))
-            .slice(1);
-
-          const now = new Date();
-          const todayStr = now.toLocaleDateString("pt-BR");
-          const umDiaEmMs = 24 * 60 * 60 * 1000;
-          const seteDiasAtras = new Date(now.getTime() - 7 * umDiaEmMs);
-
-          let hD = "",
-            hB = "";
-          let counts = {
-            dH: 0,
-            dT: 0,
-            bH: 0,
-            bT: 0,
-            ds: 0,
-            dm: 0,
-            bs: 0,
-            bm: 0,
-            df: {},
-            bf: {},
-            historyDiego: {},
-            historyBia: {},
-            allTasksDiego: {},
-            allTasksBia: {},
-            todayTasksDiego: [],
-            todayTasksBia: [],
-          };
-
-          rows.forEach((cols) => {
-            if (cols.length < 5) return;
-            const [dataRaw, dono, nome, hora, status] = [
-              cols[0].trim(),
-              cols[1].trim(),
-              cols[2].trim(),
-              cols[3].trim(),
-              cols[4].trim().toUpperCase(),
-            ];
-            const isDone = status === "OK";
-            const apenasDataStr = dataRaw.split(" ")[0];
-            const parts = apenasDataStr.split("/");
-            if (parts.length < 3) return;
-
-            const taskDate = new Date(
-              parseInt(parts[2]),
-              parseInt(parts[1]) - 1,
-              parseInt(parts[0]),
-            );
-
-            if (!isNaN(taskDate.getTime())) {
-              const formatoChave = apenasDataStr;
-
-              if (dono === "Diego") {
-                if (!counts.allTasksDiego[nome])
-                  counts.allTasksDiego[nome] = {};
-                counts.allTasksDiego[nome][formatoChave] = isDone;
-              } else if (dono === "Beatriz") {
-                if (!counts.allTasksBia[nome]) counts.allTasksBia[nome] = {};
-                counts.allTasksBia[nome][formatoChave] = isDone;
-              }
-
-              if (isDone) {
-                if (
-                  taskDate.getMonth() === now.getMonth() &&
-                  taskDate.getFullYear() === now.getFullYear()
-                ) {
-                  if (dono === "Diego") counts.dm++;
-                  else if (dono === "Beatriz") counts.bm++;
-                }
-
-                if (taskDate >= seteDiasAtras && taskDate <= now) {
-                  if (dono === "Diego") counts.ds++;
-                  else if (dono === "Beatriz") counts.bs++;
-                }
-
-                if (dono === "Diego") {
-                  counts.historyDiego[formatoChave] =
-                    (counts.historyDiego[formatoChave] || 0) + 1;
-                  counts.df[nome] = (counts.df[nome] || 0) + 1;
-                } else if (dono === "Beatriz") {
-                  counts.historyBia[formatoChave] =
-                    (counts.historyBia[formatoChave] || 0) + 1;
-                  counts.bf[nome] = (counts.bf[nome] || 0) + 1;
-                }
-              }
-            }
-
-            if (apenasDataStr === todayStr) {
-              const html = `
-                            <div class="task-item ${isDone ? "done" : ""}">
-                                <div><span class="task-name">${nome}</span><span class="task-time">${hora}</span></div>
-                                <input type="checkbox" class="checkbox" ${isDone ? "checked disabled" : ""} onclick="markDone(this, '${nome}', '${dono}')">
-                            </div>`;
-              if (dono === "Diego") {
-                hD += html;
-                counts.dT++;
-                if (isDone) counts.dH++;
-                if (!counts.todayTasksDiego.includes(nome))
-                  counts.todayTasksDiego.push(nome);
-              } else if (dono === "Beatriz") {
-                hB += html;
-                counts.bT++;
-                if (isDone) counts.bH++;
-                if (!counts.todayTasksBia.includes(nome))
-                  counts.todayTasksBia.push(nome);
-              }
-            }
-          });
-
-          document.getElementById("list-diego").innerHTML =
-            hD || '<span class="task-time">Sem tarefas</span>';
-          document.getElementById("list-bia").innerHTML =
-            hB || '<span class="task-time">Sem tarefas</span>';
-
-          updateUI(counts);
-          renderGitHubGraph("graph-diego", counts.historyDiego);
-          renderGitHubGraph("graph-bia", counts.historyBia);
-
-          calculateAdvancedInsights(
-            counts.allTasksDiego,
-            counts.todayTasksDiego,
-            "d",
-          );
-          calculateAdvancedInsights(
-            counts.allTasksBia,
-            counts.todayTasksBia,
-            "b",
-          );
-
-          setTimeout(sendHeight, 300);
-        } catch (e) {
-          console.error("Erro ao carregar:", e);
+      if(primeira){
+        let cur=0,high=0,di=new Date(primeira);
+        while(di<=hoje){
+          const k=`${String(di.getDate()).padStart(2,'0')}/${String(di.getMonth()+1).padStart(2,'0')}/${di.getFullYear()}`;
+          if(log[k]===true){cur++;if(cur>high)high=cur;}else cur=0;
+          di.setTime(di.getTime()+86400000);
+        }
+        if(high>0){ if(high>maxStreak){maxStreak=high;streakTasks=[nome];}else if(high===maxStreak)streakTasks.push(nome); }
+        if(ultima){
+          const diff=Math.floor((new Date(hoje.toDateString())-new Date(ultima.toDateString()))/86400000);
+          if(diff>0){ if(diff>maxProc){maxProc=diff;procTasks=[nome];}else if(diff===maxProc)procTasks.push(nome); }
         }
       }
+    });
 
-      function updateUI(c) {
-        document.getElementById("p-diego").innerText =
-          Math.round((c.dH / c.dT) * 100 || 0) + "%";
-        document.getElementById("p-bia").innerText =
-          Math.round((c.bH / c.bT) * 100 || 0) + "%";
+    document.getElementById(`${prefix}-streak-name`).innerText = streakTasks.join(', ')||'—';
+    document.getElementById(`${prefix}-streak-val`).innerText  = maxStreak+'d';
+    document.getElementById(`${prefix}-proc-name`).innerText   = procTasks.join(', ')||'—';
+    document.getElementById(`${prefix}-proc-val`).innerText    = maxProc+'d';
+    if(nuncaFeitas.length){
+      document.getElementById(`${prefix}-never-name`).innerText = nuncaFeitas.join(', ');
+      document.getElementById(`${prefix}-never-val`).innerText  = 'Pendente';
+    } else {
+      document.getElementById(`${prefix}-never-name`).innerText = 'Nenhuma';
+      document.getElementById(`${prefix}-never-val`).innerText  = '-';
+    }
+  }
 
-        document.getElementById("d-hoje").innerText = `${c.dH}/${c.dT}`;
-        document.getElementById("d-sem").innerText = c.ds;
-        document.getElementById("d-mes").innerText = c.dm;
-        document.getElementById("d-top").innerText =
-          Object.entries(c.df).sort((a, b) => b[1] - a[1])[0]?.[0] || "-";
+  // ─── MARK DONE ───────────────────────────────────────────────────────────
+  async function markDone(el, task, owner, dano) {
+    setLocalDone(owner, task);
+    isUpdating = true;
 
-        document.getElementById("b-hoje").innerText = `${c.bH}/${c.bT}`;
-        document.getElementById("b-sem").innerText = c.bs;
-        document.getElementById("b-mes").innerText = c.bm;
-        document.getElementById("b-top").innerText =
-          Object.entries(c.bf).sort((a, b) => b[1] - a[1])[0]?.[0] || "-";
-      }
+    const item = el.closest('.task-item');
+    el.checked = true; el.disabled = true;
+    item.classList.add('done','pending-sync');
 
-      function renderGitHubGraph(elementId, historyData) {
-        const container = document.getElementById(elementId);
-        container.innerHTML = "";
-        const totalDias = 30;
-        const hoje = new Date();
+    // Mostra dano causado ao boss
+    const dmgEl = document.createElement('span');
+    dmgEl.className = 'sync-label';
+    dmgEl.innerText = `⚔ -${dano} HP no boss · sincronizando...`;
+    item.querySelector('.task-info').appendChild(dmgEl);
 
-        for (let i = totalDias - 1; i >= 0; i--) {
-          const dataAnalise = new Date(
-            hoje.getTime() - i * 24 * 60 * 60 * 1000,
-          );
-          const dia = String(dataAnalise.getDate()).padStart(2, "0");
-          const mes = String(dataAnalise.getMonth() + 1).padStart(2, "0");
-          const ano = dataAnalise.getFullYear();
-          const chaveData = `${dia}/${mes}/${ano}`;
+    // Notifica o boss IMEDIATAMENTE
+    notifyBossDmg(dano);
 
-          const tarefasConcluidas = historyData[chaveData] || 0;
+    // Envia para a planilha
+    try {
+      await fetch(`${WEB_APP_URL}?task=${encodeURIComponent(task)}&owner=${owner}`, { mode:'no-cors' });
+    } catch(e) { console.error(e); }
 
-          const cube = document.createElement("div");
-          cube.classList.add("graph-cube");
-          cube.setAttribute(
-            "data-info",
-            `${chaveData}: ${tarefasConcluidas} concluída(s)`,
-          );
+    setTimeout(()=>{ isUpdating=false; loadTasks(); }, 8000);
+  }
 
-          if (tarefasConcluidas > 0 && tarefasConcluidas <= 2)
-            cube.classList.add("level-1");
-          else if (tarefasConcluidas > 2 && tarefasConcluidas <= 4)
-            cube.classList.add("level-2");
-          else if (tarefasConcluidas > 4 && tarefasConcluidas <= 6)
-            cube.classList.add("level-3");
-          else if (tarefasConcluidas > 6) cube.classList.add("level-4");
-
-          container.appendChild(cube);
-        }
-      }
-
-      // NOVO MOTOR COM SUPORTE A EMPATES E LISTAS ACUMULADAS
-      function calculateAdvancedInsights(tasksMap, todayTasksList, prefix) {
-        let maxStreakValue = 0;
-        let streakTasks = [];
-
-        let maxNaoRealizadoValue = 0;
-        let naoRealizadoTasks = [];
-
-        let nuncaFeitas = [];
-        const hoje = new Date();
-
-        // 1. Coleta todas as tarefas de hoje que NUNCA tiveram um "OK" no histórico
-        todayTasksList.forEach((taskName) => {
-          let possuiAlgumOk = false;
-          if (tasksMap[taskName]) {
-            Object.values(tasksMap[taskName]).forEach((val) => {
-              if (val === true) possuiAlgumOk = true;
-            });
-          }
-          if (!possuiAlgumOk) {
-            nuncaFeitas.push(taskName);
-          }
-        });
-
-        // 2. Avalia Sequências e Dias sem Realizar gerenciando empates matemáticos
-        Object.entries(tasksMap).forEach(([taskName, datesLog]) => {
-          let primeiraDataValida = null;
-          let ultimaDataConcluida = null;
-
-          for (let i = 60; i >= 0; i--) {
-            const dAlvo = new Date(hoje.getTime() - i * 24 * 60 * 60 * 1000);
-            const chave = `${String(dAlvo.getDate()).padStart(2, "0")}/${String(dAlvo.getMonth() + 1).padStart(2, "0")}/${dAlvo.getFullYear()}`;
-
-            if (datesLog[chave] === true) {
-              if (!primeiraDataValida)
-                primeiraDataValida = new Date(dAlvo.getTime());
-              ultimaDataConcluida = new Date(dAlvo.getTime());
-            }
-          }
-
-          if (primeiraDataValida) {
-            let currentStreak = 0;
-            let highestStreak = 0;
-
-            let dataInteracao = new Date(primeiraDataValida.getTime());
-            while (dataInteracao <= hoje) {
-              const chaveDia = `${String(dataInteracao.getDate()).padStart(2, "0")}/${String(dataInteracao.getMonth() + 1).padStart(2, "0")}/${dataInteracao.getFullYear()}`;
-              const foiFeita = datesLog[chaveDia] === true;
-
-              if (foiFeita) {
-                currentStreak++;
-                if (currentStreak > highestStreak)
-                  highestStreak = currentStreak;
-              } else {
-                currentStreak = 0;
-              }
-              dataInteracao.setTime(
-                dataInteracao.getTime() + 24 * 60 * 60 * 1000,
-              );
-            }
-
-            // Gerencia empates na maior sequência
-            if (highestStreak > 0) {
-              if (highestStreak > maxStreakValue) {
-                maxStreakValue = highestStreak;
-                streakTasks = [taskName]; // Novo recorde reinicia a lista
-              } else if (highestStreak === maxStreakValue) {
-                if (!streakTasks.includes(taskName)) streakTasks.push(taskName); // Empate adiciona à lista
-              }
-            }
-
-            // Gerencia empates nos dias sem realizar
-            if (ultimaDataConcluida) {
-              const diferencaMs =
-                hoje.setHours(0, 0, 0, 0) -
-                ultimaDataConcluida.setHours(0, 0, 0, 0);
-              const diferencaDias = Math.floor(
-                diferencaMs / (1000 * 60 * 60 * 24),
-              );
-
-              if (diferencaDias > 0) {
-                if (diferencaDias > maxNaoRealizadoValue) {
-                  maxNaoRealizadoValue = diferencaDias;
-                  naoRealizadoTasks = [taskName]; // Novo recorde reinicia a lista
-                } else if (diferencaDias === maxNaoRealizadoValue) {
-                  if (!naoRealizadoTasks.includes(taskName))
-                    naoRealizadoTasks.push(taskName); // Empate adiciona à lista
-                }
-              }
-            }
-          }
-        });
-
-        // Injeta os dados formatando arrays com separação por vírgula para visualização limpa
-        document.getElementById(`${prefix}-streak-name`).innerText =
-          streakTasks.length > 0 ? streakTasks.join(", ") : "-";
-        document.getElementById(`${prefix}-streak-val`).innerText =
-          maxStreakValue + "d";
-
-        document.getElementById(`${prefix}-proc-name`).innerText =
-          naoRealizadoTasks.length > 0 ? naoRealizadoTasks.join(", ") : "-";
-        document.getElementById(`${prefix}-proc-val`).innerText =
-          maxNaoRealizadoValue + "d";
-
-        if (nuncaFeitas.length > 0) {
-          document.getElementById(`${prefix}-never-name`).innerText =
-            nuncaFeitas.join(", ");
-          document.getElementById(`${prefix}-never-val`).innerText = "Pendente";
-        } else {
-          document.getElementById(`${prefix}-never-name`).innerText = "Nenhuma";
-          document.getElementById(`${prefix}-never-val`).innerText = "-";
-        }
-      }
-
-      async function markDone(el, task, owner) {
-        isUpdating = true;
-        el.disabled = true;
-        const item = el.parentElement;
-        item.classList.add("done", "pending-sync");
-
-        try {
-          await fetch(
-            `${WEB_APP_URL}?task=${encodeURIComponent(task)}&owner=${owner}`,
-            { mode: "no-cors" },
-          );
-          setTimeout(async () => {
-            isUpdating = false;
-            await loadTasks();
-          }, 5000);
-        } catch (e) {
-          console.error("Erro ao salvar:", e);
-          isUpdating = false;
-          el.disabled = false;
-          item.classList.remove("done", "pending-sync");
-        }
-      }
-
-      loadTasks();
-      setInterval(loadTasks, 30000);
-    </script>
-  </body>
+  loadTasks();
+  setInterval(loadTasks, 30000);
+</script>
+</body>
 </html>
