@@ -1,9 +1,10 @@
 import { notifyBossDmg } from './boss.js';
-import { getLocalKey, getLocalDone, removeLocalDone, isDoneForDisplay, isLocalDone, cleanOldLocalKeys } from './localStorage.js';
+import { getLocalKey, getLocalDone, removeLocalDone, isDoneForDisplay, isLocalDone, cleanOldLocalKeys, setLocalDone } from './localStorage.js';
 import { renderGraph, updateProgressBars, updateStats, calcInsights } from './ui.js';
 
 let isUpdating = false;
 const URL_LOGS    = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSK1XbGFpL5g5BUK6Dz2S7nZVRzgs-6iaPKHq7hQ0M0i_59Z2ur3-GP95xxSJLomymamLHyLYomc_7m/pub?gid=495982494&single=true&output=csv";
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxZDNq7MoIRgeBvzbaslBjpeMfY-Vm4gw5yTr8O1zgENE7zucykP7AFCJlE4Dg3RtVY/exec";
 
 // Mapa de importância → dano e label
 const IMPORTANCIA_MAP = {
@@ -17,6 +18,35 @@ function sendHeight() {
     const h = document.body.scrollHeight;
     window.parent.postMessage({height:h, id:'frame-tarefas'},'*');
 }
+
+// ─── MARK DONE ───────────────────────────────────────────────────────────
+async function markDone(el, task, owner, dano) {
+    setLocalDone(owner, task);
+    isUpdating = true;
+
+    const item = el.closest('.task-item');
+    el.checked = true; el.disabled = true;
+    item.classList.add('done','pending-sync');
+
+    // Mostra dano causado ao boss
+    const dmgEl = document.createElement('span');
+    dmgEl.className = 'sync-label';
+    dmgEl.innerText = `⚔ -${dano} HP no boss · sincronizando...`;
+    item.querySelector('.task-info').appendChild(dmgEl);
+
+    notifyBossDmg(dano);
+
+    // Envia para a planilha
+    try {
+        await fetch(`${WEB_APP_URL}?task=${encodeURIComponent(task)}&owner=${owner}&bossName=SCIZOR&damage=${dano}`, { mode:'no-cors' });
+    } catch(e) { 
+        console.error(e); 
+    }
+
+    setTimeout(()=>{ isUpdating=false; loadTasks(); }, 8000);
+}
+
+window.markDone = markDone;
 
 export async function loadTasks() {
     if (isUpdating) return;
@@ -147,31 +177,4 @@ export async function loadTasks() {
     } catch(e) { 
         console.error(e); 
     }
-}
-
-// ─── MARK DONE ───────────────────────────────────────────────────────────
-export async function markDone(el, task, owner, dano) {
-    setLocalDone(owner, task);
-    isUpdating = true;
-
-    const item = el.closest('.task-item');
-    el.checked = true; el.disabled = true;
-    item.classList.add('done','pending-sync');
-
-    // Mostra dano causado ao boss
-    const dmgEl = document.createElement('span');
-    dmgEl.className = 'sync-label';
-    dmgEl.innerText = `⚔ -${dano} HP no boss · sincronizando...`;
-    item.querySelector('.task-info').appendChild(dmgEl);
-
-    notifyBossDmg(dano);
-
-    // Envia para a planilha
-    try {
-        await fetch(`${WEB_APP_URL}?task=${encodeURIComponent(task)}&owner=${owner}`, { mode:'no-cors' });
-    } catch(e) { 
-        console.error(e); 
-    }
-
-    setTimeout(()=>{ isUpdating=false; loadTasks(); }, 8000);
 }
