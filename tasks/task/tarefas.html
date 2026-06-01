@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Dashboard de Tarefas</title>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&family=Exo+2:wght@400;600;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="header">
+  <div class="header-title">⚔ Dashboard de Tarefas</div>
+  <button class="refresh-btn" onclick="loadTasks()">↺ Atualizar</button>
+</div>
+
+<!-- Progresso do dia -->
+<div class="progress-row">
+  <div class="progress-card diego">
+    <div class="progress-header">
+      <span class="progress-name" style="color:var(--green)">Diego</span>
+      <span class="progress-pct" style="color:var(--green)" id="pct-diego">0%</span>
+    </div>
+    <div class="progress-bar-track">
+      <div class="progress-bar-fill diego" id="bar-diego" style="width:0%"></div>
+    </div>
+    <span class="progress-sub" id="sub-diego">0 de 0 tarefas concluídas hoje</span>
+  </div>
+  <div class="progress-card bia">
+    <div class="progress-header">
+      <span class="progress-name" style="color:var(--accent)">Beatriz</span>
+      <span class="progress-pct" style="color:var(--accent)" id="pct-bia">0%</span>
+    </div>
+    <div class="progress-bar-track">
+      <div class="progress-bar-fill bia" id="bar-bia" style="width:0%"></div>
+    </div>
+    <span class="progress-sub" id="sub-bia">0 de 0 tarefas concluídas hoje</span>
+  </div>
+</div>
+
+<!-- Listas de tarefas -->
+<div class="tasks-grid">
+  <div class="user-column">
+    <div style="font-family:'Rajdhani',sans-serif;font-size:0.8rem;font-weight:700;color:var(--green);letter-spacing:2px;margin-bottom:10px;">DIEGO</div>
+    <div id="list-diego"></div>
+  </div>
+  <div class="user-column">
+    <div style="font-family:'Rajdhani',sans-serif;font-size:0.8rem;font-weight:700;color:var(--accent);letter-spacing:2px;margin-bottom:10px;">BEATRIZ</div>
+    <div id="list-bia"></div>
+  </div>
+</div>
+
+<!-- Stats -->
+<div class="stats-row">
+  <div class="stats-inner" id="stats-d">
+    <div class="stat-card" style="border-bottom:2px solid var(--green)">
+      <span class="stat-label">Hoje</span><span class="stat-val" style="color:var(--green)" id="d-hoje">0/0</span>
+    </div>
+    <div class="stat-card" style="border-bottom:2px solid var(--green)">
+      <span class="stat-label">Semana</span><span class="stat-val" id="d-sem">0</span>
+    </div>
+    <div class="stat-card" style="border-bottom:2px solid var(--green)">
+      <span class="stat-label">Mês</span><span class="stat-val" id="d-mes">0</span>
+    </div>
+    <div class="stat-card" style="border-bottom:2px solid var(--green)">
+      <span class="stat-label">Top</span><span class="stat-val" style="font-size:0.55rem" id="d-top">-</span>
+    </div>
+  </div>
+  <div class="stats-inner" id="stats-b">
+    <div class="stat-card" style="border-bottom:2px solid var(--accent)">
+      <span class="stat-label">Hoje</span><span class="stat-val" style="color:var(--accent)" id="b-hoje">0/0</span>
+    </div>
+    <div class="stat-card" style="border-bottom:2px solid var(--accent)">
+      <span class="stat-label">Semana</span><span class="stat-val" id="b-sem">0</span>
+    </div>
+    <div class="stat-card" style="border-bottom:2px solid var(--accent)">
+      <span class="stat-label">Mês</span><span class="stat-val" id="b-mes">0</span>
+    </div>
+    <div class="stat-card" style="border-bottom:2px solid var(--accent)">
+      <span class="stat-label">Top</span><span class="stat-val" style="font-size:0.55rem" id="b-top">-</span>
+    </div>
+  </div>
+</div>
+
+<!-- Histórico -->
+<div class="section">
+  <div class="section-title">📊 Histórico — Últimos 30 dias</div>
+  <div class="history-grid">
+    <div>
+      <div class="history-label" style="color:var(--green)">Diego</div>
+      <div class="contribution-graph" id="graph-diego"></div>
+    </div>
+    <div>
+      <div class="history-label" style="color:var(--accent)">Beatriz</div>
+      <div class="contribution-graph" id="graph-bia"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Insights -->
+<div class="insights-grid">
+  <div class="section" style="margin-bottom:0">
+    <div class="section-title" style="color:var(--green)">💡 Insights Diego</div>
+    <div class="insight-row streak">
+      <span class="insight-label">🔥 Maior Seq.</span>
+      <span class="insight-task" id="d-streak-name">—</span>
+      <span class="insight-val" style="color:var(--green)" id="d-streak-val">0d</span>
+    </div>
+    <div class="insight-row procrastinate">
+      <span class="insight-label">⚠ Sem realizar</span>
+      <span class="insight-task" id="d-proc-name">—</span>
+      <span class="insight-val" style="color:var(--red)" id="d-proc-val">0d</span>
+    </div>
+    <div class="insight-row never">
+      <span class="insight-label">❄ Nunca feito</span>
+      <span class="insight-task" id="d-never-name">Nenhuma</span>
+      <span class="insight-val" style="color:var(--orange)" id="d-never-val">-</span>
+    </div>
+  </div>
+  <div class="section" style="margin-bottom:0">
+    <div class="section-title" style="color:var(--accent)">💡 Insights Beatriz</div>
+    <div class="insight-row streak">
+      <span class="insight-label">🔥 Maior Seq.</span>
+      <span class="insight-task" id="b-streak-name">—</span>
+      <span class="insight-val" style="color:var(--green)" id="b-streak-val">0d</span>
+    </div>
+    <div class="insight-row procrastinate">
+      <span class="insight-label">⚠ Sem realizar</span>
+      <span class="insight-task" id="b-proc-name">—</span>
+      <span class="insight-val" style="color:var(--red)" id="b-proc-val">0d</span>
+    </div>
+    <div class="insight-row never">
+      <span class="insight-label">❄ Nunca feito</span>
+      <span class="insight-task" id="b-never-name">Nenhuma</span>
+      <span class="insight-val" style="color:var(--orange)" id="b-never-val">-</span>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="./script.js"></script>
+</body>
+</html>
