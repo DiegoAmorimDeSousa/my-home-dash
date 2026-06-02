@@ -1,6 +1,5 @@
 import { loadTasks } from './task.js';
 
-// Extrai importância da string da coluna D (ex: "Alta (Saúde/Tratamento dermatológico)")
 function parseImportancia(raw) {
     if (!raw) return 'baixa';
     const r = raw.toLowerCase().trim();

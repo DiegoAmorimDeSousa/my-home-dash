@@ -43,6 +43,9 @@ export function renderGraph(id, data) {
 }
 
 export function calcInsights(tasksMap, todayList, prefix) {
+    console.log('tasksMap', tasksMap)
+    console.log('todayList', todayList)
+    console.log('prefix', prefix)
     let maxStreak=0, streakTasks=[];
     let maxProc=0, procTasks=[];
     let nuncaFeitas=[];
@@ -56,9 +59,9 @@ export function calcInsights(tasksMap, todayList, prefix) {
     Object.entries(tasksMap).forEach(([nome,log])=>{
         let primeira=null, ultima=null;
         for(let i=60;i>=0;i--){
-        const d=new Date(hoje-i*24*60*60*1000);
-        const k=`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
-        if(log[k]===true){ if(!primeira)primeira=new Date(d); ultima=new Date(d); }
+            const d=new Date(hoje-i*24*60*60*1000);
+            const k=`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+            if(log[k]===true){ if(!primeira)primeira=new Date(d); ultima=new Date(d); }
         }
         if(primeira){
         let cur=0,high=0,di=new Date(primeira);

@@ -53,12 +53,10 @@ export async function loadTasks() {
     try {
         const resp = await fetch(`${URL_LOGS}&t=${Date.now()}`);
         const text = await resp.text();
-        // CSV pode ter mais colunas; split por vírgula simples pode quebrar em valores com vírgula
-        // Usamos lógica mais robusta
         const lines = text.split('\n').slice(1);
         const rows = lines.map(l => {
         const parts = l.split(',');
-            return parts; // Data, Dono, Tarefa, Horário, Status
+            return parts; 
         });
 
         const now      = new Date();
@@ -75,7 +73,6 @@ export async function loadTasks() {
             todayTasksDiego:[],todayTasksBia:[],
         };
 
-        // Mapa de importância das tarefas (vem do CSV na coluna D se existir)
         const importanciaCache = {};
 
         const modelosResp = await fetch(`${URL_MODELOS}&t=${Date.now()}`);
@@ -185,8 +182,8 @@ export async function loadTasks() {
         updateStats(counts);
         renderGraph('graph-diego', counts.historyDiego);
         renderGraph('graph-bia',   counts.historyBia);
-        calcInsights(counts.allTasksDiego, counts.todayTasksDiego, 'd');
-        calcInsights(counts.allTasksBia,   counts.todayTasksBia,   'b');
+        // calcInsights(counts.allTasksDiego, counts.todayTasksDiego, 'd');
+        // calcInsights(counts.allTasksBia,   counts.todayTasksBia,   'b');
 
         setTimeout(sendHeight, 300);
     } catch(e) { 
