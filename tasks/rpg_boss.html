@@ -379,7 +379,22 @@ function triggerDeath() {
     screenFlash.classList.remove('active'); void screenFlash.offsetWidth; screenFlash.classList.add('active');
     if(++n>=3) clearInterval(iv);
   },160);
-  setTimeout(()=>{ deadScreen.classList.add('active'); deadText.innerText=state.bossName+'\nDERROTADO!'; },750);
+  setTimeout(async () => {
+    deadScreen.classList.add('active');
+    deadText.innerText = state.bossName + '\nDERROTADO!';
+
+    try {
+      await fetch(
+        "https://script.google.com/macros/s/AKfycbxZDNq7MoIRgeBvzbaslBjpeMfY-Vm4gw5yTr8O1zgENE7zucykP7AFCJlE4Dg3RtVY/exec?action=avancarSala"
+      );
+
+      console.log("Nova sala criada");
+
+    } catch (err) {
+      console.error("Erro ao criar nova sala", err);
+    }
+
+  }, 750);
 }
 
 function spawnDmgNumber(dano, isCrit) {
@@ -458,7 +473,21 @@ async function loadBoss(isRefresh=false) {
     const poke=await pokeRes.json();
     state.bossName=poke.name.toUpperCase(); bossName.innerText=state.bossName;
     const sprite=poke.sprites?.versions?.['generation-v']?.['black-white']?.animated?.front_default||poke.sprites?.front_default;
-    bossSprite.src=sprite;
+    bossSprite.classList.remove('dead');
+    bossSprite.classList.remove('hit');
+
+    bossSprite.style.opacity = '1';
+    bossSprite.style.transform = '';
+    bossSprite.style.filter = '';
+
+    document.getElementById('bossShadow').style.opacity = '1';
+    bossAura.style.opacity = '1';
+
+    bossSprite.src = sprite;
+
+    setTimeout(() => {
+      bossSprite.src = sprite;
+    }, 50);
     renderTypes(poke.types.map(t=>t.type.name));
     renderInfo(poke);
     updateHP(state.vidaAtual,state.vidaMaxima,isRefresh);
@@ -469,11 +498,16 @@ async function loadBoss(isRefresh=false) {
 }
 
 async function pollUpdates() {
-  if(state.isDead) return;
   try {
     const res=await fetch(SCRIPT_URL+'&t='+Date.now());
     const rpg=await res.json();
-    if(rpg.idSala!==state.salaIdAtual){ state.isDead=false; deadScreen.classList.remove('active'); loading.classList.remove('hidden'); await loadBoss(false); return; }
+    if(rpg.idSala!==state.salaIdAtual){ 
+      state.isDead=false; 
+      deadScreen.classList.remove('active'); 
+      loading.classList.remove('hidden'); 
+      await loadBoss(false); 
+      return;
+    }
     if(rpg.vidaBoss!==state.vidaAtual){ state.vidaAtual=rpg.vidaBoss; updateHP(rpg.vidaBoss,state.vidaMaxima,true); if(rpg.vidaBoss<=0&&!state.isDead){state.isDead=true;triggerDeath();} }
   } catch(e){}
 }
