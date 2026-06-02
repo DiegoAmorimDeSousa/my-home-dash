@@ -179,7 +179,6 @@ body {
     display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 
-/* ── HISTÓRICO ── */
 .section {
     background: var(--card);
     border: 1px solid var(--border);
