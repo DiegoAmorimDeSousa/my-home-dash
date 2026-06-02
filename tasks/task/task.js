@@ -4,14 +4,15 @@ import { renderGraph, updateProgressBars, updateStats, calcInsights } from './ui
 
 let isUpdating = false;
 const URL_LOGS    = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSK1XbGFpL5g5BUK6Dz2S7nZVRzgs-6iaPKHq7hQ0M0i_59Z2ur3-GP95xxSJLomymamLHyLYomc_7m/pub?gid=495982494&single=true&output=csv";
+const URL_MODELOS = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSK1XbGFpL5g5BUK6Dz2S7nZVRzgs-6iaPKHq7hQ0M0i_59Z2ur3-GP95xxSJLomymamLHyLYomc_7m/pub?gid=0&single=true&output=csv";
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxZDNq7MoIRgeBvzbaslBjpeMfY-Vm4gw5yTr8O1zgENE7zucykP7AFCJlE4Dg3RtVY/exec";
 
 // Mapa de importância → dano e label
 const IMPORTANCIA_MAP = {
-    'alta':  { dano: 50, label: '⚔ 50 DMG', cls: 'alta' },
-    'média': { dano: 25, label: '🗡 25 DMG', cls: 'media' },
-    'media': { dano: 25, label: '🗡 25 DMG', cls: 'media' },
-    'baixa': { dano: 10, label: '✦ 10 DMG', cls: 'baixa' },
+    'Alta':  { dano: 50, label: '⚔ 50 DMG', cls: 'alta' },
+    'Média': { dano: 25, label: '🗡 25 DMG', cls: 'media' },
+    'Média': { dano: 25, label: '🗡 25 DMG', cls: 'media' },
+    'Baixa': { dano: 10, label: '✦ 10 DMG', cls: 'baixa' },
 };
 
 function sendHeight() {
@@ -79,6 +80,22 @@ export async function loadTasks() {
         // Mapa de importância das tarefas (vem do CSV na coluna D se existir)
         const importanciaCache = {};
 
+        const modelosResp = await fetch(`${URL_MODELOS}&t=${Date.now()}`);
+        const modelosText = await modelosResp.text();
+
+        modelosText
+        .split('\n')
+        .slice(1)
+        .forEach(line => {
+            const cols = line.split(',');
+
+            const dono = (cols[0] || '').trim();
+            const tarefa = (cols[1] || '').trim();
+            const importancia = (cols[3] || '').trim();
+
+            importanciaCache[`${dono}::${tarefa}`] = importancia;
+        });
+
         rows.forEach(cols => {
         if (cols.length < 4) return;
         const dataRaw  = (cols[0]||'').trim();
@@ -86,7 +103,7 @@ export async function loadTasks() {
         const nome     = (cols[2]||'').trim();
         const hora     = (cols[3]||'').trim();
         const status   = (cols[4]||'').trim().toUpperCase();
-        const impRaw   = (cols[5]||'').trim(); // Coluna F pode ter importância no log
+        const impRaw   = (cols[5]||'').trim(); 
 
         if (!nome || !dono) return;
 
@@ -123,12 +140,9 @@ export async function loadTasks() {
         }
 
         if (apenasData===todayStr) {
-            // Determina importância
             let imp = 'baixa';
-            if (impRaw) imp = parseImportancia(impRaw);
-            else if (importanciaCache[`${dono}::${nome}`]) imp = importanciaCache[`${dono}::${nome}`];
-
-            const dmgInfo = IMPORTANCIA_MAP[imp] || IMPORTANCIA_MAP['baixa'];
+            const chaveImp = `${dono}::${nome}`;
+            const dmgInfo = IMPORTANCIA_MAP[importanciaCache[chaveImp]] || IMPORTANCIA_MAP['baixa'];
             const isBia   = dono === 'Beatriz';
 
             const syncHtml = isPending
