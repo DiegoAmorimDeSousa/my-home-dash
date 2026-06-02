@@ -37,7 +37,6 @@ async function markDone(el, task, owner, dano) {
 
     notifyBossDmg(dano);
 
-    // Envia para a planilha
     try {
         await fetch(`${WEB_APP_URL}?task=${encodeURIComponent(task)}&owner=${owner}&bossName=SCIZOR&damage=${dano}`, { mode:'no-cors' });
     } catch(e) { 
@@ -51,7 +50,6 @@ window.markDone = markDone;
 
 export async function loadTasks() {
     if (isUpdating) return;
-    cleanOldLocalKeys();
     try {
         const resp = await fetch(`${URL_LOGS}&t=${Date.now()}`);
         const text = await resp.text();
@@ -109,8 +107,11 @@ export async function loadTasks() {
 
         if (status==='OK') removeLocalDone(dono, nome);
 
-        const isDone      = isDoneForDisplay(dono, nome, status);
-        const isPending   = isLocalDone(dono, nome) && status!=='OK';
+        const isPending = isLocalDone(dono, nome) && status !== 'OK';
+
+        const isDone =
+            status === 'OK' ||
+            isPending;
         const apenasData  = dataRaw.split(' ')[0];
         const parts       = apenasData.split('/');
         if (parts.length<3) return;
