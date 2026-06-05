@@ -2,17 +2,17 @@ import { notifyBossDmg } from './boss.js';
 import { getLocalKey, getLocalDone, removeLocalDone, isDoneForDisplay, isLocalDone, cleanOldLocalKeys, setLocalDone } from './localStorage.js';
 import { renderGraph, updateProgressBars, updateStats, calcInsights } from './ui.js';
 
-let isUpdating = false;
+let pendingCount = 0;
 const URL_LOGS    = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSK1XbGFpL5g5BUK6Dz2S7nZVRzgs-6iaPKHq7hQ0M0i_59Z2ur3-GP95xxSJLomymamLHyLYomc_7m/pub?gid=495982494&single=true&output=csv";
 const URL_MODELOS = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSK1XbGFpL5g5BUK6Dz2S7nZVRzgs-6iaPKHq7hQ0M0i_59Z2ur3-GP95xxSJLomymamLHyLYomc_7m/pub?gid=0&single=true&output=csv";
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxZDNq7MoIRgeBvzbaslBjpeMfY-Vm4gw5yTr8O1zgENE7zucykP7AFCJlE4Dg3RtVY/exec";
 
 // Mapa de importância → dano e label
 const IMPORTANCIA_MAP = {
-    'Alta':  { dano: 50, label: '⚔ 50 DMG', cls: 'alta' },
-    'Média': { dano: 25, label: '🗡 25 DMG', cls: 'media' },
-    'Média': { dano: 25, label: '🗡 25 DMG', cls: 'media' },
-    'Baixa': { dano: 10, label: '✦ 10 DMG', cls: 'baixa' },
+    'Alta':  { dano: 80, label: '⚔ 80 DMG', cls: 'alta' },
+    'Média': { dano: 55, label: '🗡 55 DMG', cls: 'media' },
+    'Média': { dano: 55, label: '🗡 55 DMG', cls: 'media' },
+    'Baixa': { dano: 30, label: '✦ 30 DMG', cls: 'baixa' },
 };
 
 function sendHeight() {
@@ -23,7 +23,7 @@ function sendHeight() {
 // ─── MARK DONE ───────────────────────────────────────────────────────────
 async function markDone(el, task, owner, dano) {
     setLocalDone(owner, task);
-    isUpdating = true;
+    pendingCount++;
 
     const item = el.closest('.task-item');
     el.checked = true; el.disabled = true;
@@ -43,13 +43,16 @@ async function markDone(el, task, owner, dano) {
         console.error(e); 
     }
 
-    setTimeout(()=>{ isUpdating=false; loadTasks(); }, 8000);
+    setTimeout(()=>{ 
+        pendingCount--; 
+        if(pendingCount === 0) loadTasks(); 
+    }, 15000);
 }
 
 window.markDone = markDone;
 
 export async function loadTasks() {
-    if (isUpdating) return;
+    if (pendingCount > 0) return;
     try {
         const resp = await fetch(`${URL_LOGS}&t=${Date.now()}`);
         const text = await resp.text();
@@ -158,8 +161,8 @@ export async function loadTasks() {
                 ${syncHtml}
                 </div>
                 <input type="checkbox" class="checkbox"
-                ${isDone?'checked':''}
-                ${isDone&&!isPending?'disabled':''}
+                    ${isDone?'checked':''}
+                    ${isDone?'disabled':''}
                 onclick="markDone(this,'${nome}','${dono}',${dmgInfo.dano})">
             </div>`;
 
