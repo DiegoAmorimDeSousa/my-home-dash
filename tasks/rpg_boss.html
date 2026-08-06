@@ -286,6 +286,18 @@ body {
   width:0%; animation:loadFill 1.4s ease-in-out forwards;
 }
 @keyframes loadFill { to{width:100%;} }
+
+/* ── MODO COMPACTO (resumo) ── */
+body.is-compact { min-height: 150px; }
+body.is-compact .arena { height: 150px; }
+body.is-compact .boss-col { flex: 0 0 80px; }
+body.is-compact .boss-sprite { width: 68px; height: 68px; }
+body.is-compact .boss-aura { width: 60px; height: 60px; }
+body.is-compact .hud-panel { padding: 8px 12px 7px; }
+body.is-compact .hud-room { font-size: 9px; margin-bottom: 2px; }
+body.is-compact .hud-name { font-size: 11px; margin-bottom: 6px; }
+body.is-compact .info-row { display: none; }
+body.is-compact .type-row { margin-bottom: 4px; }
 </style>
 </head>
 <body>
@@ -334,6 +346,11 @@ body {
 </div>
 
 <script>
+const params = new URLSearchParams(location.search);
+const isCompact = params.get('compact') === '1';
+const frameId = params.get('frameId') || 'frame-rpg';
+if (isCompact) document.body.classList.add('is-compact');
+
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxZDNq7MoIRgeBvzbaslBjpeMfY-Vm4gw5yTr8O1zgENE7zucykP7AFCJlE4Dg3RtVY/exec?action=obterStatusRPG";
 
 const TYPE_COLORS = {
@@ -459,8 +476,10 @@ function renderInfo(poke) {
 }
 
 function notifyParent() {
-  if(window.parent&&window.parent!==window)
-    window.parent.postMessage({id:'frame-rpg',height:420},'*');
+  if(window.parent&&window.parent!==window){
+    const h = document.querySelector('.arena').getBoundingClientRect().height;
+    window.parent.postMessage({id:frameId,height:h},'*');
+  }
 }
 
 async function loadBoss(isRefresh=false) {

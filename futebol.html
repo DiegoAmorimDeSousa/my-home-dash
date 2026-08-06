@@ -380,6 +380,44 @@
         border-color: #ffffff;
         box-shadow: 0 0 12px rgba(168, 85, 247, 0.6);
       }
+
+      /* ── MODO COMPACTO (resumo) ── */
+      html, body.is-compact { height: 100%; }
+      body.is-compact #futebol-content {
+        padding: 10px 14px;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+      }
+      body.is-compact .module-header { font-size: 0.95rem; margin-bottom: 10px; flex-shrink: 0; }
+      body.is-compact .config-panel,
+      body.is-compact .stats-grid,
+      body.is-compact .filter-buttons-container,
+      body.is-compact #bracket-section,
+      body.is-compact #bracket-header {
+        display: none;
+      }
+      body.is-compact .card-table {
+        margin-bottom: 0;
+        padding: 10px;
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+      }
+      body.is-compact table {
+        min-width: 0;
+      }
+      body.is-compact thead th { position: sticky; top: 0; background: var(--card-bg); z-index: 1; }
+      body.is-compact th:nth-child(2),
+      body.is-compact td:nth-child(2),
+      body.is-compact th:nth-child(n + 5),
+      body.is-compact td:nth-child(n + 5) {
+        display: none;
+      }
+      body.is-compact th,
+      body.is-compact td {
+        padding: 8px 10px;
+      }
     </style>
   </head>
   <body>
@@ -442,6 +480,7 @@
       </div>
 
       <div
+        id="bracket-header"
         style="
           display: flex;
           justify-content: space-between;
@@ -458,7 +497,7 @@
         </button>
       </div>
 
-      <div class="tournament-wrapper">
+      <div class="tournament-wrapper" id="bracket-section">
         <div class="bracket-side left">
           <div class="bracket-round" id="round-left-32"></div>
           <div class="bracket-round" id="round-left-16"></div>
@@ -488,6 +527,11 @@
     </div>
 
     <script>
+      const params = new URLSearchParams(location.search);
+      const isCompact = params.get("compact") === "1";
+      const frameId = params.get("frameId") || "frame-futebol";
+      if (isCompact) document.body.classList.add("is-compact");
+
       const url_macro_apps_script =
         "https://script.google.com/macros/s/AKfycbyzVZOl7vbrtlVtre_12NFn-UqkT0zAJuEN_u865x6gDMnY6jesiNTZ44thrlOqb6hoTw/exec";
       const url_futebol =
@@ -709,7 +753,8 @@
           });
 
           renderDashboard(results);
-          carregarEExibirMataMataDoSheets();
+          if (!isCompact) carregarEExibirMataMataDoSheets();
+          else sendHeight();
         } catch (e) {
           console.error("Erro na carga do Futebol:", e);
         }
@@ -927,7 +972,7 @@
           if (!el) return;
           const height = el.scrollHeight;
           window.parent.postMessage(
-            { height: height, id: "frame-futebol" },
+            { height: height, id: frameId },
             "*",
           );
         }, 300);

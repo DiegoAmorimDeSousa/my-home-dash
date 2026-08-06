@@ -124,6 +124,84 @@
           grid-template-columns: 1fr;
         }
       }
+
+      /* ── MODO COMPACTO (resumo) ── */
+      html, body.is-compact { height: 100%; }
+      body.is-compact .finance-module {
+        padding: 6px 14px;
+        min-height: 100%;
+        display: flex;
+        flex-direction: column;
+      }
+      body.is-compact .title-section h2 { font-size: 0.85rem; margin-bottom: 10px; flex-shrink: 0; }
+      body.is-compact .fin-grid {
+        grid-template-columns: 1fr;
+        gap: 0;
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+      }
+      body.is-compact .col-left {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        min-height: 0;
+      }
+      body.is-compact .fin-grid > .fin-card { display: none; } /* tabela de transações some */
+      body.is-compact .chart-container { display: none; } /* gráfico some, lista de categorias entra no lugar */
+      body.is-compact .col-left .fin-card {
+        padding: 10px 14px 4px;
+        margin-bottom: 0;
+        flex-shrink: 0;
+      }
+      body.is-compact .highlight-card { margin-bottom: 8px; padding: 10px; flex-shrink: 0; }
+      body.is-compact .total-value { font-size: 1.5rem; }
+      body.is-compact .total-header { margin-bottom: 0; }
+
+      /* Card da lista de categorias: esconde no modo cheio, mostra e estica no compacto */
+      .cat-list-card { display: none; }
+      body.is-compact .cat-list-card {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        min-height: 0;
+        padding: 10px 14px;
+      }
+      .cat-list {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding-right: 4px;
+      }
+      .cat-row { font-size: 0.8rem; }
+      .cat-row-top {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 4px;
+      }
+      .cat-row-name { display: flex; align-items: center; gap: 6px; font-weight: 600; }
+      .cat-row-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+      .cat-row-value { font-weight: 700; color: #8b949e; font-size: 0.78rem; }
+      .cat-row-bar-bg {
+        height: 5px;
+        border-radius: 3px;
+        background: rgba(255,255,255,0.06);
+        overflow: hidden;
+      }
+      .cat-row-bar {
+        height: 100%;
+        border-radius: 3px;
+      }
+
+      /* ── SCROLLBAR ESTILIZADA ── */
+      .cat-list::-webkit-scrollbar { width: 6px; }
+      .cat-list::-webkit-scrollbar-track { background: transparent; }
+      .cat-list::-webkit-scrollbar-thumb { background: var(--purple); border-radius: 4px; opacity: 0.5; }
+      .cat-list { scrollbar-width: thin; scrollbar-color: var(--purple) transparent; }
     </style>
   </head>
   <body>
@@ -161,6 +239,12 @@
               <canvas id="financeChart"></canvas>
             </div>
           </div>
+
+          <!-- Só aparece no modo compacto: lista de categorias -->
+          <div class="fin-card cat-list-card" id="cat-list-card">
+            <div class="total-label" style="margin-bottom: 10px;">Gastos por Categoria</div>
+            <div class="cat-list" id="lista-categorias"></div>
+          </div>
         </div>
 
         <div class="fin-card">
@@ -185,6 +269,11 @@
     </div>
 
     <script>
+      const params = new URLSearchParams(location.search);
+      const isCompact = params.get("compact") === "1";
+      const frameId = params.get("frameId") || "frame-financas";
+      if (isCompact) document.body.classList.add("is-compact");
+
       const CSV_URL =
         "https://docs.google.com/spreadsheets/d/e/2PACX-1vTN8n-xOXOvaB4Okw7vnSYwhhvVpHRDo4unjN_TNuwQR6hJDFfktiwLCthDKUc076iQcwC3Ue4wLf7z/pub?gid=0&output=csv";
 
@@ -256,13 +345,35 @@
           document.getElementById("gasto-total").innerText =
             `R$ ${totalGeral.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
 
+          // Lista de categorias ordenada (maior gasto primeiro) — usada no modo compacto
+          const catOrdenadas = Object.entries(catTotals).sort((a, b) => b[1] - a[1]);
+          const maiorCatValor = catOrdenadas.length ? catOrdenadas[0][1] : 1;
+          document.getElementById("lista-categorias").innerHTML = catOrdenadas
+            .map(([cat, valor]) => {
+              const color = colorMap[cat] || colorMap["Outros"];
+              const pct = Math.max(4, (valor / maiorCatValor) * 100);
+              return `
+                <div class="cat-row">
+                  <div class="cat-row-top">
+                    <span class="cat-row-name">
+                      <span class="cat-row-dot" style="background:${color}"></span>${cat}
+                    </span>
+                    <span class="cat-row-value">R$ ${valor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+                  </div>
+                  <div class="cat-row-bar-bg">
+                    <div class="cat-row-bar" style="width:${pct}%; background:${color};"></div>
+                  </div>
+                </div>`;
+            })
+            .join("");
+
           renderChart(catTotals, totalGeral);
 
           setTimeout(() => {
             const height =
               document.getElementById("content-wrapper").offsetHeight;
             window.parent.postMessage(
-              { height: height, id: "frame-financas" },
+              { height: height, id: frameId },
               "*",
             );
           }, 300);

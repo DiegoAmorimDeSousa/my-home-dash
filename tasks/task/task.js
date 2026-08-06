@@ -16,8 +16,9 @@ const IMPORTANCIA_MAP = {
 };
 
 function sendHeight() {
+    const frameId = new URLSearchParams(location.search).get('frameId') || 'frame-tarefas';
     const h = document.body.scrollHeight;
-    window.parent.postMessage({height:h, id:'frame-tarefas'},'*');
+    window.parent.postMessage({height:h, id:frameId},'*');
 }
 
 // ─── MARK DONE ───────────────────────────────────────────────────────────
@@ -151,7 +152,7 @@ export async function loadTasks() {
             : '';
 
             const html = `
-            <div class="task-item ${isDone?'done':''} ${isBia?'bia-task':''} ${isPending?'pending-sync':''}" data-task="${nome}" data-owner="${dono}" data-dano="${dmgInfo.dano}">
+            <div class="task-item ${isDone?'done':''} ${isBia?'bia-task':''} ${isPending?'pending-sync':''} dmg-${dmgInfo.cls}" data-task="${nome}" data-owner="${dono}" data-dano="${dmgInfo.dano}">
                 <div class="task-info">
                 <span class="task-name">${nome}</span>
                 <div class="task-meta">

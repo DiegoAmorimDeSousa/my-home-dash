@@ -7,6 +7,10 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+<script>
+  const params = new URLSearchParams(location.search);
+  if (params.get('compact') === '1') document.body.classList.add('is-compact');
+</script>
 
 <div class="header">
   <div class="header-title">⚔ Dashboard de Tarefas</div>

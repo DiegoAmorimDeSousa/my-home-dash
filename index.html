@@ -22,12 +22,17 @@
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
+    html, body {
+      height: 100%;
+    }
+
     body {
       font-family: 'Exo 2', sans-serif;
       background: var(--bg);
       color: var(--text);
-      min-height: 100vh;
       overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
     }
 
     /* Grid de fundo sutil */
@@ -41,11 +46,23 @@
       pointer-events: none;
     }
 
+    /* ── SCROLLBAR ESTILIZADA (página + modal) ── */
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+    * { scrollbar-width: thin; scrollbar-color: var(--border) var(--bg); }
+
     .container {
       position: relative; z-index: 1;
       max-width: 1800px;
+      width: 100%;
       margin: 0 auto;
       padding: 18px 20px;
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-height: 0;
     }
 
     /* ── HEADER ── */
@@ -56,6 +73,7 @@
       margin-bottom: 18px;
       padding-bottom: 14px;
       border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
     }
 
     .logo {
@@ -82,28 +100,34 @@
     .status-pill.live { color: var(--green); border-color: rgba(0,255,136,0.3); }
     .status-pill.live::before { content: '● '; }
 
-    /* ── ROW PRINCIPAL: boss + tarefas ── */
-    .main-row {
+    /* ── FILEIRA ÚNICA: 4 colunas (Tarefas+Boss / Financeiro / Valorant / Futebol) ── */
+    .dashboard-row {
       display: grid;
-      grid-template-columns: 400px 1fr;
+      grid-template-columns: repeat(4, 1fr);
       gap: 16px;
-      margin-bottom: 16px;
+      align-items: stretch;
+      flex: 1;
+      min-height: 0;
     }
 
-    /* ── ROW SECUNDÁRIA: demais módulos ── */
-    .secondary-row {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
+    @media (max-width: 1300px) {
+      .dashboard-row { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 700px) {
+      body { overflow-y: auto; }
+      .container { flex: none; }
+      .dashboard-row { grid-template-columns: 1fr; flex: none; align-items: stretch; }
+      .module { min-height: 380px; }
     }
 
     /* ── MÓDULO GENÉRICO ── */
     .module {
-      /* background: var(--surface); */
-      /* border: 1px solid var(--border); */
       border-radius: 10px;
       overflow: hidden;
       position: relative;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
     }
 
     .module::before {
@@ -125,6 +149,7 @@
       padding: 9px 14px;
       background: rgba(0,0,0,0.3);
       border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
     }
 
     .module-title {
@@ -166,14 +191,97 @@
       width: 100%;
       border: none;
       display: block;
-      transition: height 0.3s ease;
+      flex: 1;
+      min-height: 0;
     }
 
-    #frame-rpg    { height: 420px; }
-    #frame-tarefas { height: 600px; }
-    #frame-financas { height: 320px; }
-    #frame-valorant { height: 460px; }
-    #frame-futebol  { height: 460px; }
+    /* ── PILHA BOSS + TAREFAS (mesma coluna) ── */
+    .tarefas-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 8px;
+      flex: 1;
+      min-height: 0;
+    }
+    .sub-frame {
+      width: 100%;
+      border: none;
+      display: block;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .boss-frame  { flex: 0 0 150px; }
+    .tasks-frame { flex: 1; min-height: 0; }
+
+    /* ── BOTÃO EXPANDIR ── */
+    .expand-btn {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.7rem;
+      padding: 3px 8px;
+      border: 1px solid var(--accent);
+      background: transparent;
+      color: var(--accent);
+      border-radius: 3px;
+      cursor: pointer;
+      transition: all 0.2s;
+      line-height: 1;
+    }
+    .expand-btn:hover { background: var(--glow-purple); }
+
+    /* ── MODAL DE EXPANSÃO ── */
+    .expand-box {
+      background: var(--surface2);
+      border: 1px solid var(--accent);
+      border-radius: 10px;
+      width: min(1100px, 92vw);
+      max-height: 90vh;
+      box-shadow: 0 0 60px var(--glow-purple);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .expand-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .expand-title {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+    .expand-close {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--dim);
+      border-radius: 4px;
+      width: 26px; height: 26px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: all 0.2s;
+    }
+    .expand-close:hover { border-color: var(--red); color: var(--red); }
+    .expand-body {
+      flex: 1;
+      overflow-y: auto;
+      min-height: 200px;
+    }
+    .expand-iframe {
+      width: 100%;
+      border: none;
+      display: block;
+      min-height: 400px;
+    }
+    .expand-iframe + .expand-iframe {
+      border-top: 1px solid var(--border);
+    }
 
     /* ── MODAL ── */
     .modal-overlay {
@@ -241,55 +349,71 @@
     </div>
   </header>
 
-  <!-- ROW PRINCIPAL: Boss (esquerda) + Tarefas (direita) -->
-  <div class="main-row">
-    <!-- BOSS -->
-    <div class="module rpg-module" id="container-rpg">
+  <!-- FILEIRA ÚNICA: Tarefas (+Boss) / Financeiro / Valorant / Futebol -->
+  <div class="dashboard-row">
+    <!-- TAREFAS + BOSS (mesma coluna) -->
+    <div class="module rpg-module" id="container-tarefasgroup">
       <div class="module-header">
-        <span class="module-title">⚔ Boss Battle</span>
+        <span class="module-title">📋 Tarefas</span>
         <div class="module-controls">
-          <button class="toggle-btn" onclick="controlePainel('rpg')">Desligar</button>
+          <button class="expand-btn" onclick="expandTarefas()">⤢ Expandir</button>
+          <button class="toggle-btn" onclick="controlePainel('tarefasgroup')">Desligar</button>
         </div>
       </div>
-      <iframe src="./tasks/rpg_boss.html" class="module-frame" id="frame-rpg"></iframe>
-    </div>
-
-    <!-- TAREFAS -->
-    <div class="module" id="container-tarefas">
-      <div class="module-header">
-        <span class="module-title">📋 Gerenciador de Tarefas</span>
-        <div class="module-controls">
-          <button class="toggle-btn" onclick="controlePainel('tarefas')">Desligar</button>
-        </div>
+      <div class="tarefas-stack">
+        <iframe src="./tasks/rpg_boss.html?compact=1" class="sub-frame boss-frame" id="frame-rpg"></iframe>
+        <iframe src="./tasks/task/tarefas.html?compact=1" class="sub-frame tasks-frame" id="frame-tarefas"></iframe>
       </div>
-      <iframe src="./tasks/task/tarefas.html" class="module-frame" id="frame-tarefas"></iframe>
     </div>
-  </div>
 
-  <!-- ROW SECUNDÁRIA -->
-  <div class="secondary-row">
+    <!-- FINANCEIRO -->
     <div class="module" id="container-financas">
       <div class="module-header">
-        <span class="module-title">💰 Fluxo Financeiro</span>
-        <button class="toggle-btn" onclick="controlePainel('financas')">Desligar</button>
+        <span class="module-title">💰 Financeiro</span>
+        <div class="module-controls">
+          <button class="expand-btn" onclick="expandModule('financas','financas.html','💰 Fluxo Financeiro')">⤢ Expandir</button>
+          <button class="toggle-btn" onclick="controlePainel('financas')">Desligar</button>
+        </div>
       </div>
-      <iframe src="financas.html" class="module-frame" id="frame-financas"></iframe>
+      <iframe src="financas.html?compact=1" class="module-frame" id="frame-financas"></iframe>
     </div>
 
+    <!-- VALORANT -->
     <div class="module" id="container-valorant">
       <div class="module-header">
-        <span class="module-title">🎮 Estatísticas Valorant</span>
-        <button class="toggle-btn" onclick="controlePainel('valorant')">Desligar</button>
+        <span class="module-title">🎮 Tabela Valorant</span>
+        <div class="module-controls">
+          <button class="expand-btn" onclick="expandModule('valorant','./valorant/valorant.html','🎮 Estatísticas Valorant')">⤢ Expandir</button>
+          <button class="toggle-btn" onclick="controlePainel('valorant')">Desligar</button>
+        </div>
       </div>
-      <iframe src="valorant.html" class="module-frame" id="frame-valorant"></iframe>
+      <iframe src="./valorant/valorant.html?compact=1" class="module-frame" id="frame-valorant"></iframe>
     </div>
 
+    <!-- FUTEBOL -->
     <div class="module" id="container-futebol">
       <div class="module-header">
-        <span class="module-title">⚽ Resultados Futebol</span>
-        <button class="toggle-btn" onclick="controlePainel('futebol')">Desligar</button>
+        <span class="module-title">⚽ Tabela Futebol</span>
+        <div class="module-controls">
+          <button class="expand-btn" onclick="expandModule('futebol','futebol.html','⚽ Resultados Futebol')">⤢ Expandir</button>
+          <button class="toggle-btn" onclick="controlePainel('futebol')">Desligar</button>
+        </div>
       </div>
-      <iframe src="futebol.html" class="module-frame" id="frame-futebol"></iframe>
+      <iframe src="futebol.html?compact=1" class="module-frame" id="frame-futebol"></iframe>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DE EXPANSÃO -->
+<div class="modal-overlay" id="modal-expand">
+  <div class="expand-box">
+    <div class="expand-header">
+      <span class="expand-title" id="expand-title">Módulo</span>
+      <button class="expand-close" onclick="fecharExpandido()">✕</button>
+    </div>
+    <div class="expand-body" id="expand-body">
+      <iframe id="modal-frame" class="expand-iframe" src="about:blank"></iframe>
+      <iframe id="modal-frame-2" class="expand-iframe" src="about:blank" style="display:none;"></iframe>
     </div>
   </div>
 </div>
@@ -320,36 +444,84 @@
   setInterval(atualizarRelogio, 1000);
   atualizarRelogio();
 
-  // Mensagens dos iframes (resize + dano no boss)
+  // Mensagens dos iframes (resize do modal + dano no boss)
   window.addEventListener('message', function(e) {
-    // Resize de iframe
-    if (e.data.height && e.data.id) {
+    // Resize dinâmico SÓ para os iframes do modal expandido — os cards
+    // compactos ficam com altura fixa via CSS pra manter as 4 colunas uniformes.
+    if (e.data.height && (e.data.id === 'modal-frame' || e.data.id === 'modal-frame-2')) {
       const frame = document.getElementById(e.data.id);
       if (frame && frame.style.display !== 'none') {
         frame.style.height = (e.data.height + 20) + 'px';
       }
     }
 
-    // Tarefa concluída → propaga dano para o boss
+    // Tarefa concluída → propaga dano para QUALQUER iframe que esteja mostrando o boss
+    // (o card compacto "frame-rpg" e, se estiver aberto, o modal expandido)
     if (e.data.action === 'tarefaConcluida') {
-      const frameBoss = document.getElementById('frame-rpg');
-      if (frameBoss && frameBoss.style.display !== 'none') {
-        frameBoss.contentWindow.postMessage({
-          action: 'triggerDmg',
-          dano: e.data.dano || 10
-        }, '*');
-      }
+      document.querySelectorAll('iframe').forEach(f => {
+        if (f.src && f.src.includes('rpg_boss.html') && f.style.display !== 'none') {
+          f.contentWindow.postMessage({
+            action: 'triggerDmg',
+            dano: e.data.dano || 10
+          }, '*');
+        }
+      });
     }
   });
 
+  // ── EXPANDIR / FECHAR MODAL ──
+  function expandModule(id, url, titulo) {
+    document.getElementById('expand-title').innerText = titulo;
+    const f2 = document.getElementById('modal-frame-2');
+    f2.style.display = 'none';
+    f2.src = 'about:blank';
+
+    const iframe = document.getElementById('modal-frame');
+    iframe.style.height = '400px';
+    const sep = url.includes('?') ? '&' : '?';
+    iframe.src = url + sep + 'frameId=modal-frame';
+    document.getElementById('modal-expand').classList.add('active');
+  }
+
+  // Caso especial: Tarefas mostra Boss + Checklist completos empilhados no modal
+  function expandTarefas() {
+    document.getElementById('expand-title').innerText = '📋 Tarefas & Boss';
+
+    const f1 = document.getElementById('modal-frame');
+    f1.style.height = '420px';
+    f1.src = './tasks/rpg_boss.html?frameId=modal-frame';
+
+    const f2 = document.getElementById('modal-frame-2');
+    f2.style.display = 'block';
+    f2.style.height = '400px';
+    f2.src = './tasks/task/tarefas.html?frameId=modal-frame-2';
+
+    document.getElementById('modal-expand').classList.add('active');
+  }
+
+  function fecharExpandido() {
+    document.getElementById('modal-expand').classList.remove('active');
+    document.getElementById('modal-frame').src = 'about:blank';
+    const f2 = document.getElementById('modal-frame-2');
+    f2.src = 'about:blank';
+    f2.style.display = 'none';
+  }
+
+  // ── LIGAR / DESLIGAR PAINÉIS (suporta grupos com mais de 1 iframe) ──
+  const PAINEIS = {
+    tarefasgroup: { container: 'container-tarefasgroup', frames: ['frame-rpg', 'frame-tarefas'] },
+    financas:     { container: 'container-financas',     frames: ['frame-financas'] },
+    valorant:     { container: 'container-valorant',     frames: ['frame-valorant'] },
+    futebol:      { container: 'container-futebol',      frames: ['frame-futebol'] },
+  };
+
   function aplicarEstadoInicial() {
-    ['tarefas','rpg','financas','valorant','futebol'].forEach(id => {
+    Object.keys(PAINEIS).forEach(id => {
       if (localStorage.getItem(`painel-${id}`) === 'off') {
-        const container = document.getElementById(`container-${id}`);
-        const iframe    = document.getElementById(`frame-${id}`);
-        const botao     = container.querySelector('.toggle-btn');
-        iframe.style.display = 'none';
-        iframe.style.height  = '0px';
+        const cfg = PAINEIS[id];
+        const container = document.getElementById(cfg.container);
+        const botao = container.querySelector('.toggle-btn');
+        cfg.frames.forEach(fid => { document.getElementById(fid).style.display = 'none'; });
         botao.textContent = 'Ligar';
         botao.classList.add('off');
       }
@@ -357,14 +529,13 @@
   }
 
   function controlePainel(id) {
-    const container = document.getElementById(`container-${id}`);
-    const iframe    = document.getElementById(`frame-${id}`);
-    const botao     = container.querySelector('.toggle-btn');
+    const cfg = PAINEIS[id];
+    const container = document.getElementById(cfg.container);
+    const botao = container.querySelector('.toggle-btn');
+    const primeiraFrame = document.getElementById(cfg.frames[0]);
 
-    if (iframe.style.display !== 'none') {
-      iframe.dataset.antigaAltura = iframe.style.height;
-      iframe.style.display = 'none';
-      iframe.style.height  = '0px';
+    if (primeiraFrame.style.display !== 'none') {
+      cfg.frames.forEach(fid => { document.getElementById(fid).style.display = 'none'; });
       botao.textContent = 'Ligar';
       botao.classList.add('off');
       localStorage.setItem(`painel-${id}`, 'off');
@@ -389,12 +560,11 @@
   function validarSenha() {
     const input = document.getElementById('input-senha');
     if (input.value === SENHA_CORRETA) {
-      const id        = painelPendenteAtivacao;
-      const container = document.getElementById(`container-${id}`);
-      const iframe    = document.getElementById(`frame-${id}`);
-      const botao     = container.querySelector('.toggle-btn');
-      iframe.style.display = 'block';
-      iframe.style.height  = iframe.dataset.antigaAltura || '420px';
+      const id  = painelPendenteAtivacao;
+      const cfg = PAINEIS[id];
+      const container = document.getElementById(cfg.container);
+      const botao = container.querySelector('.toggle-btn');
+      cfg.frames.forEach(fid => { document.getElementById(fid).style.display = 'block'; });
       botao.textContent = 'Desligar';
       botao.classList.remove('off');
       localStorage.removeItem(`painel-${id}`);

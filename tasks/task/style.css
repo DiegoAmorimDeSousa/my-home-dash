@@ -233,3 +233,39 @@ body {
     font-size:0.7rem;
 }
 .insight-val   { font-family:'Share Tech Mono',monospace; font-size:0.8rem; white-space:nowrap; }
+
+/* ── MODO COMPACTO (resumo) ── */
+body.is-compact { padding: 10px; }
+body.is-compact .header { margin-bottom: 10px; }
+html { height: 100%; }
+body.is-compact {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+body.is-compact .header { display: none; }
+body.is-compact .stats-row,
+body.is-compact .section {
+    display: none;
+}
+body.is-compact .tasks-grid {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    margin-bottom: 0;
+    padding-right: 4px;
+}
+body.is-compact .progress-row { margin-bottom: 10px; flex-shrink: 0; }
+
+body.is-compact .task-time { display: none; }
+body.is-compact .task-item { padding: 6px 10px; margin-bottom: 4px; border-left: 3px solid transparent; }
+body.is-compact .task-item.dmg-alta  { background: rgba(255,61,90,0.08); border-left-color: var(--red); }
+body.is-compact .task-item.dmg-media { background: rgba(255,159,67,0.08); border-left-color: var(--orange); }
+body.is-compact .task-item.dmg-baixa { background: rgba(56,189,248,0.06); border-left-color: var(--blue); }
+body.is-compact .task-item.done { background: rgba(255,255,255,0.02); border-left-color: var(--border); }
+
+/* ── SCROLLBAR ESTILIZADA ── */
+body.is-compact .tasks-grid::-webkit-scrollbar { width: 6px; }
+body.is-compact .tasks-grid::-webkit-scrollbar-track { background: transparent; }
+body.is-compact .tasks-grid::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 4px; opacity: 0.5; }
+body.is-compact .tasks-grid { scrollbar-width: thin; scrollbar-color: var(--accent) transparent; }

@@ -179,6 +179,38 @@
         font-size: 1.1rem;
         color: #888;
       }
+
+      /* ── MODO COMPACTO (resumo) ── */
+      html, body.is-compact { height: 100%; }
+      body.is-compact #valorant-wrapper {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+      }
+      body.is-compact h1 { font-size: 1.05rem; margin-bottom: 10px; flex-shrink: 0; }
+      body.is-compact .refresh-status { display: none; }
+      body.is-compact .filter-container { display: none; }
+      body.is-compact #tabela-container-div {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        border-radius: 8px;
+      }
+      body.is-compact thead th { position: sticky; top: 0; z-index: 1; }
+      body.is-compact th:nth-child(n + 4),
+      body.is-compact td:nth-child(n + 4) {
+        display: none;
+      }
+      body.is-compact th,
+      body.is-compact td {
+        padding: 8px 10px;
+      }
+
+      /* ── SCROLLBAR ESTILIZADA ── */
+      body.is-compact #tabela-container-div::-webkit-scrollbar { width: 6px; }
+      body.is-compact #tabela-container-div::-webkit-scrollbar-track { background: transparent; }
+      body.is-compact #tabela-container-div::-webkit-scrollbar-thumb { background: var(--accent-color); border-radius: 4px; opacity: 0.5; }
+      body.is-compact #tabela-container-div { scrollbar-width: thin; scrollbar-color: var(--accent-color) transparent; }
     </style>
   </head>
   <body>
@@ -257,6 +289,11 @@
     </div>
 
     <script>
+      const params = new URLSearchParams(location.search);
+      const isCompact = params.get("compact") === "1";
+      const frameId = params.get("frameId") || "frame-valorant";
+      if (isCompact) document.body.classList.add("is-compact");
+
       const SPREADSHEET_ID = "1X0JK-WAZtRtRq8N_XQ_sTF82IA0aCuxmnJ60OgKlpGw";
       const SHEET_NAME = "Classificacao";
       const url_api = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?sheet=${SHEET_NAME}&tqx=out:json`;
@@ -271,7 +308,7 @@
           window.parent.postMessage(
             {
               height: alturaReal,
-              id: "frame-valorant",
+              id: frameId,
             },
             "*",
           );
