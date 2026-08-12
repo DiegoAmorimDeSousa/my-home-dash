@@ -1,196 +1,182 @@
-import { notifyBossDmg } from './boss.js';
-import { getLocalKey, getLocalDone, removeLocalDone, isDoneForDisplay, isLocalDone, cleanOldLocalKeys, setLocalDone } from './localStorage.js';
-import { renderGraph, updateProgressBars, updateStats, calcInsights } from './ui.js';
-
-let pendingCount = 0;
-const URL_LOGS    = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSK1XbGFpL5g5BUK6Dz2S7nZVRzgs-6iaPKHq7hQ0M0i_59Z2ur3-GP95xxSJLomymamLHyLYomc_7m/pub?gid=495982494&single=true&output=csv";
-const URL_MODELOS = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSK1XbGFpL5g5BUK6Dz2S7nZVRzgs-6iaPKHq7hQ0M0i_59Z2ur3-GP95xxSJLomymamLHyLYomc_7m/pub?gid=0&single=true&output=csv";
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxZDNq7MoIRgeBvzbaslBjpeMfY-Vm4gw5yTr8O1zgENE7zucykP7AFCJlE4Dg3RtVY/exec";
-
-// Mapa de importância → dano e label
-const IMPORTANCIA_MAP = {
-    'Alta':  { dano: 80, label: '⚔ 80 DMG', cls: 'alta' },
-    'Média': { dano: 55, label: '🗡 55 DMG', cls: 'media' },
-    'Média': { dano: 55, label: '🗡 55 DMG', cls: 'media' },
-    'Baixa': { dano: 30, label: '✦ 30 DMG', cls: 'baixa' },
-};
+import { notifyBossChanged, notifyTasksChanged } from './boss.js';
+import {
+    getOwners, getTasks, addTask, removeTask,
+    isTaskDoneToday, setTaskDone, dmgInfoFor, DANO_PRESETS,
+    applyDamageToBoss, processRollover, computeStats,
+} from './store.js';
+import { updateProgressBars, updateStats, renderInsights } from './ui.js';
 
 function sendHeight() {
     const frameId = new URLSearchParams(location.search).get('frameId') || 'frame-tarefas';
     const h = document.body.scrollHeight;
-    window.parent.postMessage({height:h, id:frameId},'*');
+    window.parent.postMessage({ height: h, id: frameId }, '*');
 }
 
-// ─── MARK DONE ───────────────────────────────────────────────────────────
-async function markDone(el, task, owner, dano) {
-    setLocalDone(owner, task);
-    pendingCount++;
+const OWNER_META = {
+    Diego:    { listId: 'list-diego' },
+    Beatriz:  { listId: 'list-bia'   },
+};
+
+// ─── RENDER DE UMA TAREFA ───────────────────────────────────────────────────
+function taskItemHtml(owner, task) {
+    const isDone   = isTaskDoneToday(owner, task.id);
+    const dmgInfo  = dmgInfoFor(task.dano);
+    const horaHtml = task.hora ? `<span class="task-time">${task.hora}</span>` : '';
+    const sharedHtml = (task.donos && task.donos.length > 1)
+        ? `<span class="task-shared" title="Tarefa compartilhada">👥</span>` : '';
+
+    return `
+    <div class="task-item ${isDone ? 'done' : ''} dmg-${dmgInfo.cls}" data-task-id="${task.id}" data-owner="${owner}">
+        <div class="task-info">
+        <span class="task-name">${sharedHtml}${task.nome}</span>
+        <div class="task-meta">
+            ${horaHtml}
+            <span class="task-dmg ${dmgInfo.cls}">${dmgInfo.label}</span>
+        </div>
+        </div>
+        <div class="task-actions">
+            <input type="checkbox" class="checkbox"
+                ${isDone ? 'checked' : ''} ${isDone ? 'disabled' : ''}
+                onclick="markDone(this,'${owner}','${task.id}')">
+            <button class="task-del-btn" title="Excluir tarefa" onclick="deleteTask('${task.id}')">🗑</button>
+        </div>
+    </div>`;
+}
+
+// ─── MARK DONE (100% local, instantâneo) ────────────────────────────────────
+async function markDone(el, owner, taskId) {
+    const task = getTasks(owner).find(t => t.id === taskId);
+    if (!task) return;
+    const dmgInfo = dmgInfoFor(task.dano);
+
+    setTaskDone(owner, taskId, true);
 
     const item = el.closest('.task-item');
     el.checked = true; el.disabled = true;
-    item.classList.add('done','pending-sync');
+    item.classList.add('done');
 
-    // Mostra dano causado ao boss
     const dmgEl = document.createElement('span');
     dmgEl.className = 'sync-label';
-    dmgEl.innerText = `⚔ -${dano} HP no boss · sincronizando...`;
+    dmgEl.innerText = `⚔ -${dmgInfo.dano} HP no boss`;
     item.querySelector('.task-info').appendChild(dmgEl);
+    setTimeout(() => dmgEl.remove(), 2500);
 
-    notifyBossDmg(dano);
+    await applyDamageToBoss(dmgInfo.dano);
+    notifyBossChanged(); // ping instantâneo pro card/modal do boss redesenhar
 
-    try {
-        await fetch(`${WEB_APP_URL}?task=${encodeURIComponent(task)}&owner=${owner}&bossName=SCIZOR&damage=${dano}`, { mode:'no-cors' });
-    } catch(e) { 
-        console.error(e); 
-    }
-
-    setTimeout(()=>{ 
-        pendingCount--; 
-        if(pendingCount === 0) loadTasks(); 
-    }, 15000);
+    renderAll();
 }
-
 window.markDone = markDone;
 
-export async function loadTasks() {
-    if (pendingCount > 0) return;
-    try {
-        const resp = await fetch(`${URL_LOGS}&t=${Date.now()}`);
-        const text = await resp.text();
-        const lines = text.split('\n').slice(1);
-        const rows = lines.map(l => {
-        const parts = l.split(',');
-            return parts; 
-        });
-
-        const now      = new Date();
-        const todayStr = now.toLocaleDateString('pt-BR');
-        const umDia    = 24*60*60*1000;
-        const seteDias = new Date(now - 7*umDia);
-
-        let hD='', hB='';
-        let counts = {
-            dH:0,dT:0,bH:0,bT:0,ds:0,dm:0,bs:0,bm:0,
-            df:{},bf:{},
-            historyDiego:{},historyBia:{},
-            allTasksDiego:{},allTasksBia:{},
-            todayTasksDiego:[],todayTasksBia:[],
-        };
-
-        const importanciaCache = {};
-
-        const modelosResp = await fetch(`${URL_MODELOS}&t=${Date.now()}`);
-        const modelosText = await modelosResp.text();
-
-        modelosText
-        .split('\n')
-        .slice(1)
-        .forEach(line => {
-            const cols = line.split(',');
-
-            const dono = (cols[0] || '').trim();
-            const tarefa = (cols[1] || '').trim();
-            const importancia = (cols[3] || '').trim();
-
-            importanciaCache[`${dono}::${tarefa}`] = importancia;
-        });
-
-        rows.forEach(cols => {
-        if (cols.length < 4) return;
-        const dataRaw  = (cols[0]||'').trim();
-        const dono     = (cols[1]||'').trim();
-        const nome     = (cols[2]||'').trim();
-        const hora     = (cols[3]||'').trim();
-        const status   = (cols[4]||'').trim().toUpperCase();
-        const impRaw   = (cols[5]||'').trim(); 
-
-        if (!nome || !dono) return;
-
-        if (status==='OK') removeLocalDone(dono, nome);
-
-        const isPending = isLocalDone(dono, nome) && status !== 'OK';
-
-        const isDone =
-            status === 'OK' ||
-            isPending;
-        const apenasData  = dataRaw.split(' ')[0];
-        const parts       = apenasData.split('/');
-        if (parts.length<3) return;
-
-        const taskDate = new Date(parseInt(parts[2]), parseInt(parts[1])-1, parseInt(parts[0]));
-        if (isNaN(taskDate.getTime())) return;
-
-        const chave = apenasData;
-
-        if (dono==='Diego') {
-            if (!counts.allTasksDiego[nome]) counts.allTasksDiego[nome]={};
-            counts.allTasksDiego[nome][chave]=isDone;
-        } else if (dono==='Beatriz') {
-            if (!counts.allTasksBia[nome]) counts.allTasksBia[nome]={};
-            counts.allTasksBia[nome][chave]=isDone;
-        }
-
-        if (isDone) {
-            if (taskDate.getMonth()===now.getMonth()&&taskDate.getFullYear()===now.getFullYear()){
-                if(dono==='Diego') counts.dm++; else if(dono==='Beatriz') counts.bm++;
-            }
-            if (taskDate>=seteDias&&taskDate<=now){
-                if(dono==='Diego') counts.ds++; else if(dono==='Beatriz') counts.bs++;
-            }
-            if(dono==='Diego'){ counts.historyDiego[chave]=(counts.historyDiego[chave]||0)+1; counts.df[nome]=(counts.df[nome]||0)+1; }
-            else if(dono==='Beatriz'){ counts.historyBia[chave]=(counts.historyBia[chave]||0)+1; counts.bf[nome]=(counts.bf[nome]||0)+1; }
-        }
-
-        if (apenasData===todayStr) {
-            let imp = 'baixa';
-            const chaveImp = `${dono}::${nome}`;
-            const dmgInfo = IMPORTANCIA_MAP[importanciaCache[chaveImp]] || IMPORTANCIA_MAP['baixa'];
-            const isBia   = dono === 'Beatriz';
-
-            const syncHtml = isPending
-            ? `<span class="sync-label">⏳ Sincronizando...</span>`
-            : '';
-
-            const html = `
-            <div class="task-item ${isDone?'done':''} ${isBia?'bia-task':''} ${isPending?'pending-sync':''} dmg-${dmgInfo.cls}" data-task="${nome}" data-owner="${dono}" data-dano="${dmgInfo.dano}">
-                <div class="task-info">
-                <span class="task-name">${nome}</span>
-                <div class="task-meta">
-                    <span class="task-time">${hora}</span>
-                    <span class="task-dmg ${dmgInfo.cls}">${dmgInfo.label}</span>
-                </div>
-                ${syncHtml}
-                </div>
-                <input type="checkbox" class="checkbox"
-                    ${isDone?'checked':''}
-                    ${isDone?'disabled':''}
-                onclick="markDone(this,'${nome}','${dono}',${dmgInfo.dano})">
-            </div>`;
-
-            if(dono==='Diego'){
-            hD+=html; counts.dT++;
-            if(isDone) counts.dH++;
-            if(!counts.todayTasksDiego.includes(nome)) counts.todayTasksDiego.push(nome);
-            } else if(dono==='Beatriz'){
-            hB+=html; counts.bT++;
-            if(isDone) counts.bH++;
-            if(!counts.todayTasksBia.includes(nome)) counts.todayTasksBia.push(nome);
-            }
-        }
-        });
-
-        document.getElementById('list-diego').innerHTML = hD||'<span style="font-size:0.75rem;color:var(--dim)">Sem tarefas</span>';
-        document.getElementById('list-bia').innerHTML   = hB||'<span style="font-size:0.75rem;color:var(--dim)">Sem tarefas</span>';
-
-        updateProgressBars(counts);
-        updateStats(counts);
-        renderGraph('graph-diego', counts.historyDiego);
-        renderGraph('graph-bia',   counts.historyBia);
-        // calcInsights(counts.allTasksDiego, counts.todayTasksDiego, 'd');
-        // calcInsights(counts.allTasksBia,   counts.todayTasksBia,   'b');
-
-        setTimeout(sendHeight, 300);
-    } catch(e) { 
-        console.error(e); 
-    }
+// ─── CRIAR / EXCLUIR TAREFA (formulário único, dono(s) selecionável) ────────
+function populateDanoSelect() {
+    const sel = document.getElementById('novo-dano');
+    if (!sel || sel.dataset.filled) return;
+    sel.innerHTML = DANO_PRESETS.map(p => `<option value="${p.dano}">${p.nome} · ${p.dano} DMG</option>`).join('')
+        + `<option value="custom">Personalizado…</option>`;
+    sel.value = '55';
+    sel.dataset.filled = '1';
 }
+
+function onDanoSelectChange() {
+    const sel = document.getElementById('novo-dano');
+    const customEl = document.getElementById('novo-dano-custom');
+    const isCustom = sel.value === 'custom';
+    customEl.style.display = isCustom ? 'block' : 'none';
+    if (isCustom) customEl.focus();
+}
+window.onDanoSelectChange = onDanoSelectChange;
+
+function addTaskUI() {
+    const nomeEl   = document.getElementById('novo-nome');
+    const horaEl   = document.getElementById('novo-hora');
+    const danoSel  = document.getElementById('novo-dano');
+    const danoCustomEl = document.getElementById('novo-dano-custom');
+    const chkDiego = document.getElementById('novo-dono-diego');
+    const chkBia   = document.getElementById('novo-dono-bia');
+
+    const nome = (nomeEl.value || '').trim();
+    if (!nome) { nomeEl.focus(); return; }
+
+    const owners = [];
+    if (chkDiego.checked) owners.push('Diego');
+    if (chkBia.checked)   owners.push('Beatriz');
+    if (!owners.length) { alert('Escolha pelo menos uma pessoa pra essa tarefa.'); return; }
+
+    let dano = danoSel.value === 'custom' ? parseInt(danoCustomEl.value, 10) : parseInt(danoSel.value, 10);
+    if (!dano || dano < 1) dano = 30;
+    dano = Math.min(dano, 999);
+
+    addTask(owners, { nome, hora: horaEl.value, dano });
+    notifyTasksChanged(); // avisa outras instâncias abertas (ex: card compacto, se isso rodou no modal)
+
+    nomeEl.value = ''; horaEl.value = ''; danoCustomEl.value = '';
+    toggleAddForm(false);
+    renderAll();
+}
+window.addTaskUI = addTaskUI;
+
+function deleteTask(taskId) {
+    const todas = [...getTasks('Diego'), ...getTasks('Beatriz')];
+    const task = todas.find(t => t.id === taskId);
+    const msg = (task && task.donos && task.donos.length > 1)
+        ? 'Essa tarefa é compartilhada entre Diego e Beatriz — excluir vai remover dos dois. Confirmar?'
+        : 'Excluir essa tarefa? Isso não apaga o histórico já registrado.';
+    if (!confirm(msg)) return;
+    removeTask(taskId);
+    notifyTasksChanged();
+    renderAll();
+}
+window.deleteTask = deleteTask;
+
+function toggleAddForm(show) {
+    const form = document.getElementById('add-form');
+    if (!form) return;
+    const willShow = show !== undefined ? show : form.style.display === 'none';
+    populateDanoSelect();
+    form.style.display = willShow ? 'flex' : 'none';
+    if (willShow) document.getElementById('novo-nome').focus();
+}
+window.toggleAddForm = toggleAddForm;
+
+// ─── RENDER GERAL ────────────────────────────────────────────────────────────
+export function renderAll() {
+    const owners = getOwners();
+    const counts = { dH: 0, dT: 0, bH: 0, bT: 0 };
+
+    owners.forEach(owner => {
+        const meta = OWNER_META[owner];
+        if (!meta) return;
+        const tasks = getTasks(owner);
+        const html = tasks.map(t => taskItemHtml(owner, t)).join('') ||
+            '<span style="font-size:0.75rem;color:var(--dim)">Sem tarefas cadastradas</span>';
+        document.getElementById(meta.listId).innerHTML = html;
+
+        const stats = computeStats(owner);
+        if (owner === 'Diego') { counts.dH = stats.hoje.feitas; counts.dT = stats.hoje.total; }
+        if (owner === 'Beatriz') { counts.bH = stats.hoje.feitas; counts.bT = stats.hoje.total; }
+
+        renderInsights(owner, stats);
+    });
+
+    updateProgressBars(counts);
+    updateStats(counts);
+
+    setTimeout(sendHeight, 60);
+}
+window.loadTasks = renderAll;
+
+// Outra instância de tarefas.html (card compacto ou modal) criou/excluiu
+// uma tarefa → redesenha aqui também, sem precisar de F5.
+window.addEventListener('message', (e) => {
+    if (e.data?.action === 'tasksChanged') renderAll();
+});
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+async function init() {
+    await processRollover();
+    renderAll();
+}
+
+init();
+export { init };

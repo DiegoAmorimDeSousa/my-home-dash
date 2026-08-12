@@ -444,7 +444,7 @@
   setInterval(atualizarRelogio, 1000);
   atualizarRelogio();
 
-  // Mensagens dos iframes (resize do modal + dano no boss)
+  // Mensagens dos iframes (resize do modal + estado do boss)
   window.addEventListener('message', function(e) {
     // Resize dinâmico SÓ para os iframes do modal expandido — os cards
     // compactos ficam com altura fixa via CSS pra manter as 4 colunas uniformes.
@@ -455,15 +455,25 @@
       }
     }
 
-    // Tarefa concluída → propaga dano para QUALQUER iframe que esteja mostrando o boss
-    // (o card compacto "frame-rpg" e, se estiver aberto, o modal expandido)
-    if (e.data.action === 'tarefaConcluida') {
+    // Tarefas gravou algo novo no localStorage local → avisa QUALQUER iframe
+    // que esteja mostrando o boss pra ele reler o estado e se re-renderizar
+    // (o card compacto "frame-rpg" e, se estiver aberto, o modal expandido).
+    // Nenhum valor de dano trafega mais entre iframes — todos leem o mesmo
+    // localStorage (mesma origem), a mensagem é só um "ping" pra atualizar na hora.
+    if (e.data.action === 'bossStateChanged') {
       document.querySelectorAll('iframe').forEach(f => {
         if (f.src && f.src.includes('rpg_boss.html') && f.style.display !== 'none') {
-          f.contentWindow.postMessage({
-            action: 'triggerDmg',
-            dano: e.data.dano || 10
-          }, '*');
+          f.contentWindow.postMessage({ action: 'bossStateChanged' }, '*');
+        }
+      });
+    }
+
+    // Mesma lógica pra tarefas: se o modal expandido criar/excluir uma
+    // tarefa, o card compacto (e vice-versa) precisa saber pra redesenhar.
+    if (e.data.action === 'tasksChanged') {
+      document.querySelectorAll('iframe').forEach(f => {
+        if (f.src && f.src.includes('tarefas.html') && f.style.display !== 'none') {
+          f.contentWindow.postMessage({ action: 'tasksChanged' }, '*');
         }
       });
     }

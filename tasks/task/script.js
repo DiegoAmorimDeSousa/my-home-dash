@@ -1,12 +1,6 @@
-import { loadTasks } from './task.js';
+import { init } from './task.js';
 
-function parseImportancia(raw) {
-    if (!raw) return 'baixa';
-    const r = raw.toLowerCase().trim();
-    if (r.startsWith('alta'))  return 'alta';
-    if (r.startsWith('média') || r.startsWith('media')) return 'media';
-    return 'baixa';
-}
-
-loadTasks();
-setInterval(loadTasks, 30000);
+// task.js já roda o init() (rollover + primeira renderização) ao ser
+// importado. Aqui só re-checamos periodicamente a virada de dia — útil se
+// o painel ficar aberto passando da meia-noite (ex: tablet fixo em casa).
+setInterval(init, 60000);

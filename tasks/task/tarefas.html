@@ -14,7 +14,28 @@
 
 <div class="header">
   <div class="header-title">⚔ Dashboard de Tarefas</div>
-  <button class="refresh-btn" onclick="loadTasks()">↺ Atualizar</button>
+  <div style="display:flex;gap:8px;">
+    <button class="add-task-btn add-task-btn-main" onclick="toggleAddForm()">+ Nova Tarefa</button>
+    <button class="refresh-btn" onclick="loadTasks()">↺ Atualizar</button>
+  </div>
+</div>
+
+<!-- Formulário único de criar tarefa -->
+<div class="add-task-form" id="add-form" style="display:none">
+  <input type="text" id="novo-nome" class="add-task-input" placeholder="Nome da tarefa" maxlength="60">
+  <div class="add-task-row2">
+    <input type="time" id="novo-hora" class="add-task-input add-task-time">
+    <select id="novo-dano" class="add-task-select" onchange="onDanoSelectChange()"></select>
+  </div>
+  <input type="number" id="novo-dano-custom" class="add-task-input" placeholder="Dano personalizado (ex: 45)" min="1" max="999" style="display:none">
+  <div class="add-task-owners">
+    <label class="owner-check"><input type="checkbox" id="novo-dono-diego" checked><span style="color:var(--green)">Diego</span></label>
+    <label class="owner-check"><input type="checkbox" id="novo-dono-bia" checked><span style="color:var(--accent)">Beatriz</span></label>
+  </div>
+  <div class="add-task-actions">
+    <button class="btn-cancel" onclick="toggleAddForm(false)">Cancelar</button>
+    <button class="btn-confirm" style="background:var(--accent)" onclick="addTaskUI()">Adicionar</button>
+  </div>
 </div>
 
 <!-- Progresso do dia -->
@@ -44,11 +65,15 @@
 <!-- Listas de tarefas -->
 <div class="tasks-grid">
   <div class="user-column">
-    <div style="font-family:'Rajdhani',sans-serif;font-size:0.8rem;font-weight:700;color:var(--green);letter-spacing:2px;margin-bottom:10px;">DIEGO</div>
+    <div class="user-col-header">
+      <span style="font-family:'Rajdhani',sans-serif;font-size:0.8rem;font-weight:700;color:var(--green);letter-spacing:2px;">DIEGO</span>
+    </div>
     <div id="list-diego"></div>
   </div>
   <div class="user-column">
-    <div style="font-family:'Rajdhani',sans-serif;font-size:0.8rem;font-weight:700;color:var(--accent);letter-spacing:2px;margin-bottom:10px;">BEATRIZ</div>
+    <div class="user-col-header">
+      <span style="font-family:'Rajdhani',sans-serif;font-size:0.8rem;font-weight:700;color:var(--accent);letter-spacing:2px;">BEATRIZ</span>
+    </div>
     <div id="list-bia"></div>
   </div>
 </div>
@@ -101,21 +126,26 @@
 </div>
 
 <!-- Insights -->
-<!-- <div class="insights-grid">
+<div class="insights-grid">
   <div class="section" style="margin-bottom:0">
     <div class="section-title" style="color:var(--green)">💡 Insights Diego</div>
     <div class="insight-row streak">
-      <span class="insight-label">🔥 Maior Seq.</span>
+      <span class="insight-label">🔥</span>
       <span class="insight-task" id="d-streak-name">—</span>
-      <span class="insight-val" style="color:var(--green)" id="d-streak-val">0d</span>
+      <span class="insight-val" style="color:var(--green)" id="d-streak-val">-</span>
     </div>
     <div class="insight-row procrastinate">
-      <span class="insight-label">⚠ Sem realizar</span>
+      <span class="insight-label">💤</span>
       <span class="insight-task" id="d-proc-name">—</span>
-      <span class="insight-val" style="color:var(--red)" id="d-proc-val">0d</span>
+      <span class="insight-val" style="color:var(--red)" id="d-proc-val">-</span>
+    </div>
+    <div class="insight-row record">
+      <span class="insight-label">🏆</span>
+      <span class="insight-task" id="d-record-name">—</span>
+      <span class="insight-val" style="color:var(--accent)" id="d-record-val">0x</span>
     </div>
     <div class="insight-row never">
-      <span class="insight-label">❄ Nunca feito</span>
+      <span class="insight-label">😴</span>
       <span class="insight-task" id="d-never-name">Nenhuma</span>
       <span class="insight-val" style="color:var(--orange)" id="d-never-val">-</span>
     </div>
@@ -123,22 +153,27 @@
   <div class="section" style="margin-bottom:0">
     <div class="section-title" style="color:var(--accent)">💡 Insights Beatriz</div>
     <div class="insight-row streak">
-      <span class="insight-label">🔥 Maior Seq.</span>
+      <span class="insight-label">🔥</span>
       <span class="insight-task" id="b-streak-name">—</span>
-      <span class="insight-val" style="color:var(--green)" id="b-streak-val">0d</span>
+      <span class="insight-val" style="color:var(--green)" id="b-streak-val">-</span>
     </div>
     <div class="insight-row procrastinate">
-      <span class="insight-label">⚠ Sem realizar</span>
+      <span class="insight-label">💤</span>
       <span class="insight-task" id="b-proc-name">—</span>
-      <span class="insight-val" style="color:var(--red)" id="b-proc-val">0d</span>
+      <span class="insight-val" style="color:var(--red)" id="b-proc-val">-</span>
+    </div>
+    <div class="insight-row record">
+      <span class="insight-label">🏆</span>
+      <span class="insight-task" id="b-record-name">—</span>
+      <span class="insight-val" style="color:var(--accent)" id="b-record-val">0x</span>
     </div>
     <div class="insight-row never">
-      <span class="insight-label">❄ Nunca feito</span>
+      <span class="insight-label">😴</span>
       <span class="insight-task" id="b-never-name">Nenhuma</span>
       <span class="insight-val" style="color:var(--orange)" id="b-never-val">-</span>
     </div>
   </div>
-</div> -->
+</div>
 
 <script type="module" src="./script.js"></script>
 </body>

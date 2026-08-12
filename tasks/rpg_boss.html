@@ -345,13 +345,13 @@ body.is-compact .type-row { margin-bottom: 4px; }
   </div>
 </div>
 
-<script>
+<script type="module">
+import { ensureBoss, avancarProximoBoss } from './task/store.js';
+
 const params = new URLSearchParams(location.search);
 const isCompact = params.get('compact') === '1';
 const frameId = params.get('frameId') || 'frame-rpg';
 if (isCompact) document.body.classList.add('is-compact');
-
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxZDNq7MoIRgeBvzbaslBjpeMfY-Vm4gw5yTr8O1zgENE7zucykP7AFCJlE4Dg3RtVY/exec?action=obterStatusRPG";
 
 const TYPE_COLORS = {
   fire:'#ff6b35',water:'#4fc3f7',grass:'#66bb6a',electric:'#ffee58',
@@ -361,7 +361,7 @@ const TYPE_COLORS = {
   fairy:'#f8bbd9',normal:'#9e9e9e',
 };
 
-let state = { vidaAtual:0, vidaMaxima:0, lastVida:null, bossName:'', salaId:1, isDead:false, salaIdAtual:null };
+let state = { vidaAtual:0, vidaMaxima:0, lastVida:null, bossName:'', bossIdAtual:null, isDead:false };
 
 const hpFill      = document.getElementById('hpFill');
 const hpPending   = document.getElementById('hpPending');
@@ -400,17 +400,15 @@ function triggerDeath() {
     deadScreen.classList.add('active');
     deadText.innerText = state.bossName + '\nDERROTADO!';
 
-    try {
-      await fetch(
-        "https://script.google.com/macros/s/AKfycbxZDNq7MoIRgeBvzbaslBjpeMfY-Vm4gw5yTr8O1zgENE7zucykP7AFCJlE4Dg3RtVY/exec?action=avancarSala"
-      );
+    // Sobe o troféu e sorteia o próximo boss — tudo local.
+    await avancarProximoBoss();
 
-      console.log("Nova sala criada");
-
-    } catch (err) {
-      console.error("Erro ao criar nova sala", err);
-    }
-
+    setTimeout(() => {
+      state.isDead = false;
+      deadScreen.classList.remove('active');
+      loading.classList.remove('hidden');
+      render(false);
+    }, 2200);
   }, 750);
 }
 
@@ -468,11 +466,11 @@ function renderTypes(tipos) {
   });
 }
 
-function renderInfo(poke) {
+function renderInfo(boss) {
   infoRow.innerHTML=`
-    <div class="info-chip">ALT <span>${(poke.height/10).toFixed(1)}m</span></div>
-    <div class="info-chip">· PESO <span>${(poke.weight/10).toFixed(1)}kg</span></div>
-    <div class="info-chip">· SALA <span>#${state.salaId}</span></div>`;
+    <div class="info-chip">ALT <span>${(boss.altura/10).toFixed(1)}m</span></div>
+    <div class="info-chip">· PESO <span>${(boss.peso/10).toFixed(1)}kg</span></div>
+    <div class="info-chip">· SALA <span>#${boss.salaId}</span></div>`;
 }
 
 function notifyParent() {
@@ -482,69 +480,45 @@ function notifyParent() {
   }
 }
 
-async function loadBoss(isRefresh=false) {
-  try {
-    const res=await fetch(SCRIPT_URL+'&t='+Date.now());
-    const rpg=await res.json();
-    state.salaId=rpg.idSala; state.vidaAtual=rpg.vidaBoss; state.vidaMaxima=rpg.vidaMaxima||100; state.salaIdAtual=rpg.idSala;
-    roomName.innerText=`SALA ${rpg.idSala} · ${(rpg.nomeSala||'').toUpperCase()}`;
-    const pokeRes=await fetch(`https://pokeapi.co/api/v2/pokemon/${rpg.pokemonId}`);
-    const poke=await pokeRes.json();
-    state.bossName=poke.name.toUpperCase(); bossName.innerText=state.bossName;
-    const sprite=poke.sprites?.versions?.['generation-v']?.['black-white']?.animated?.front_default||poke.sprites?.front_default;
-    bossSprite.classList.remove('dead');
-    bossSprite.classList.remove('hit');
+async function render(animate) {
+  const boss = await ensureBoss();
 
-    bossSprite.style.opacity = '1';
-    bossSprite.style.transform = '';
-    bossSprite.style.filter = '';
-
-    document.getElementById('bossShadow').style.opacity = '1';
-    bossAura.style.opacity = '1';
-
-    bossSprite.src = sprite;
-
-    setTimeout(() => {
-      bossSprite.src = sprite;
-    }, 50);
-    renderTypes(poke.types.map(t=>t.type.name));
-    renderInfo(poke);
-    updateHP(state.vidaAtual,state.vidaMaxima,isRefresh);
-    if(state.vidaAtual<=0&&!state.isDead){ state.isDead=true; triggerDeath(); }
-    loading.classList.add('hidden');
-    notifyParent();
-  } catch(err){ console.error(err); bossName.innerText='OFFLINE'; loading.classList.add('hidden'); }
-}
-
-async function pollUpdates() {
-  try {
-    const res=await fetch(SCRIPT_URL+'&t='+Date.now());
-    const rpg=await res.json();
-    if(rpg.idSala!==state.salaIdAtual){ 
-      state.isDead=false; 
-      deadScreen.classList.remove('active'); 
-      loading.classList.remove('hidden'); 
-      await loadBoss(false); 
-      return;
-    }
-    if(rpg.vidaBoss!==state.vidaAtual){ state.vidaAtual=rpg.vidaBoss; updateHP(rpg.vidaBoss,state.vidaMaxima,true); if(rpg.vidaBoss<=0&&!state.isDead){state.isDead=true;triggerDeath();} }
-  } catch(e){}
-}
-
-loadBoss(false);
-setInterval(pollUpdates,15000);
-window.addEventListener('load',notifyParent);
-window.addEventListener('resize',notifyParent);
-
-window.addEventListener('message',e=>{
-  if(e.data?.action==='triggerDmg'){
-    const dano=e.data.dano||10;
-    state.lastVida=state.vidaAtual;
-    state.vidaAtual=Math.max(0,state.vidaAtual-dano);
-    updateHP(state.vidaAtual,state.vidaMaxima,true);
-    if(state.vidaAtual<=0&&!state.isDead){state.isDead=true;triggerDeath();}
+  if (boss.pokemonId !== state.bossIdAtual) {
+    // Boss novo na tela — reseta o visual, sem animação de dano na virada.
+    state.bossIdAtual = boss.pokemonId;
+    state.bossName = boss.nome;
+    bossName.innerText = boss.nome;
+    roomName.innerText = `SALA ${boss.salaId} · ${(boss.salaNome||'').toUpperCase()}`;
+    bossSprite.classList.remove('dead','hit');
+    bossSprite.style.opacity='1'; bossSprite.style.transform=''; bossSprite.style.filter='';
+    document.getElementById('bossShadow').style.opacity='1';
+    bossAura.style.opacity='1';
+    bossSprite.src = boss.sprite;
+    renderTypes(boss.tipos||[]);
+    renderInfo(boss);
+    state.lastVida = null;
+    animate = false;
   }
+
+  updateHP(boss.vidaAtual, boss.vidaMaxima, animate);
+  if (boss.vidaAtual <= 0 && !state.isDead) { state.isDead = true; triggerDeath(); }
+  loading.classList.add('hidden');
+  notifyParent();
+}
+
+window.addEventListener('load', notifyParent);
+window.addEventListener('resize', notifyParent);
+
+// Ping instantâneo vindo do módulo de tarefas (mesma origem, sem rede).
+window.addEventListener('message', e => {
+  if (e.data?.action === 'bossStateChanged' && !state.isDead) render(true);
 });
+
+// Rede de segurança local (sem chamada externa) — cobre qualquer caso em
+// que o ping não chegue (ex: iframe recém-aberto no modal).
+setInterval(() => { if (!state.isDead) render(true); }, 4000);
+
+render(false);
 </script>
 </body>
 </html>
