@@ -93,6 +93,9 @@
         height: 280px;
         position: relative;
       }
+      .chart-container.metodo {
+        height: 170px;
+      }
 
       table {
         width: 100%;
@@ -102,11 +105,13 @@
         padding: 12px 8px;
         border-bottom: 1px solid var(--border);
         font-size: 0.85rem;
+        vertical-align: middle;
       }
       .val-cell {
         text-align: right;
         font-weight: 700;
         color: #ef4444;
+        white-space: nowrap;
       }
 
       /* TAGS DINÂMICAS */
@@ -117,7 +122,80 @@
         font-weight: 700;
         text-transform: uppercase;
         background: rgba(255, 255, 255, 0.05);
+        display: inline-block;
+        margin-top: 2px;
       }
+
+      /* AÇÕES DE LINHA (editar/excluir) */
+      .row-actions { display: flex; gap: 6px; justify-content: flex-end; margin-top: 4px; }
+      .row-actions button {
+        background: transparent;
+        border: 1px solid var(--border);
+        color: #8b949e;
+        border-radius: 4px;
+        width: 22px; height: 22px;
+        font-size: 0.7rem;
+        cursor: pointer;
+        transition: all 0.15s;
+        line-height: 1;
+      }
+      .row-actions button:hover { border-color: var(--purple); color: var(--purple); }
+      .row-actions .btn-del:hover { border-color: #ef4444; color: #ef4444; }
+
+      /* LINHA EM MODO EDIÇÃO */
+      .edit-input, .edit-select {
+        width: 100%;
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        color: var(--text);
+        font-family: "Inter", sans-serif;
+        font-size: 0.78rem;
+        padding: 5px 6px;
+        margin-bottom: 4px;
+      }
+      .edit-actions { display: flex; gap: 6px; justify-content: flex-end; }
+      .edit-actions button {
+        font-family: "Inter", sans-serif;
+        font-size: 0.68rem;
+        font-weight: 700;
+        border: none;
+        border-radius: 4px;
+        padding: 5px 9px;
+        cursor: pointer;
+      }
+      .btn-salvar { background: var(--purple); color: #fff; }
+      .btn-cancelar { background: rgba(255,255,255,0.08); color: var(--text); }
+
+      /* LISTA DOS ÚLTIMOS 3 MESES */
+      .mes-list { display: flex; flex-direction: column; gap: 10px; }
+      .mes-row {
+        background: rgba(255,255,255,0.02);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 10px 12px;
+      }
+      .mes-row-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin-bottom: 4px;
+      }
+      .mes-nome {
+        font-family: "Montserrat", sans-serif;
+        font-weight: 700;
+        font-size: 0.82rem;
+        text-transform: capitalize;
+      }
+      .mes-total { font-weight: 800; font-size: 0.88rem; }
+      .mes-top-cat {
+        font-size: 0.72rem;
+        color: #8b949e;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+      .mes-top-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
 
       @media (max-width: 900px) {
         .fin-grid {
@@ -149,59 +227,38 @@
         min-height: 0;
       }
       body.is-compact .fin-grid > .fin-card { display: none; } /* tabela de transações some */
-      body.is-compact .chart-container { display: none; } /* gráfico some, lista de categorias entra no lugar */
+      body.is-compact .full-only { display: none; } /* segundo gráfico (método) só no expandido */
+
       body.is-compact .col-left .fin-card {
-        padding: 10px 14px 4px;
-        margin-bottom: 0;
+        padding: 10px 14px;
+        margin-bottom: 8px;
         flex-shrink: 0;
       }
       body.is-compact .highlight-card { margin-bottom: 8px; padding: 10px; flex-shrink: 0; }
       body.is-compact .total-value { font-size: 1.5rem; }
-      body.is-compact .total-header { margin-bottom: 0; }
+      body.is-compact .total-header { display: none; } /* some o número grande, só sobra o gráfico */
+      body.is-compact .chart-container { height: 130px; }
 
-      /* Card da lista de categorias: esconde no modo cheio, mostra e estica no compacto */
-      .cat-list-card { display: none; }
-      body.is-compact .cat-list-card {
-        display: flex;
-        flex-direction: column;
+      /* Card dos últimos 3 meses: no compacto estica e rola */
+      body.is-compact #mes-card {
         flex: 1;
         min-height: 0;
-        padding: 10px 14px;
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 0;
       }
-      .cat-list {
+      body.is-compact .mes-list {
         flex: 1;
         min-height: 0;
         overflow-y: auto;
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
         padding-right: 4px;
-      }
-      .cat-row { font-size: 0.8rem; }
-      .cat-row-top {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 4px;
-      }
-      .cat-row-name { display: flex; align-items: center; gap: 6px; font-weight: 600; }
-      .cat-row-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-      .cat-row-value { font-weight: 700; color: #8b949e; font-size: 0.78rem; }
-      .cat-row-bar-bg {
-        height: 5px;
-        border-radius: 3px;
-        background: rgba(255,255,255,0.06);
-        overflow: hidden;
-      }
-      .cat-row-bar {
-        height: 100%;
-        border-radius: 3px;
       }
 
       /* ── SCROLLBAR ESTILIZADA ── */
-      .cat-list::-webkit-scrollbar { width: 6px; }
-      .cat-list::-webkit-scrollbar-track { background: transparent; }
-      .cat-list::-webkit-scrollbar-thumb { background: var(--purple); border-radius: 4px; opacity: 0.5; }
-      .cat-list { scrollbar-width: thin; scrollbar-color: var(--purple) transparent; }
+      .mes-list::-webkit-scrollbar { width: 6px; }
+      .mes-list::-webkit-scrollbar-track { background: transparent; }
+      .mes-list::-webkit-scrollbar-thumb { background: var(--purple); border-radius: 4px; opacity: 0.5; }
+      .mes-list { scrollbar-width: thin; scrollbar-color: var(--purple) transparent; }
     </style>
   </head>
   <body>
@@ -240,10 +297,18 @@
             </div>
           </div>
 
-          <!-- Só aparece no modo compacto: lista de categorias -->
-          <div class="fin-card cat-list-card" id="cat-list-card">
-            <div class="total-label" style="margin-bottom: 10px;">Gastos por Categoria</div>
-            <div class="cat-list" id="lista-categorias"></div>
+          <!-- Só no expandido: segundo gráfico, Débito x Crédito -->
+          <div class="fin-card full-only">
+            <div class="total-label" style="margin-bottom: 10px;">Débito x Crédito</div>
+            <div class="chart-container metodo">
+              <canvas id="metodoChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Últimos 3 meses — aparece no compacto E no expandido -->
+          <div class="fin-card" id="mes-card">
+            <div class="total-label" style="margin-bottom: 10px;">Últimos 3 Meses</div>
+            <div class="mes-list" id="lista-meses"></div>
           </div>
         </div>
 
@@ -276,7 +341,10 @@
 
       import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
       import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
-      import { getFirestore, collection, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
+      import {
+        getFirestore, collection, query, orderBy, onSnapshot,
+        doc, updateDoc, deleteDoc,
+      } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
 
       const firebaseConfig = {
         apiKey: "AIzaSyCbsu_WD-7L-elljYBJ0j1naGiSGCnhDbE",
@@ -291,19 +359,17 @@
       const auth = getAuth(fbApp);
       const db = getFirestore(fbApp);
 
-      // MAPEAMENTO DE CORES POR CATEGORIA
+      const CATEGORIAS = ["Contas", "Lanche", "Lazer", "Almoço", "Café", "Mercado", "Saúde", "Vestuária", "Casinha", "Outros"];
       const colorMap = {
-        Mercado: "#3b82f6",   // Azul
-        Lanche: "#f59e0b",    // Laranja
-        Saúde: "#ef4444",     // Vermelho
-        Almoço: "#22c55e",    // Verde
-        Contas: "#a855f7",    // Roxo
-        Lazer: "#ec4899",     // Rosa
-        Casinha: "#00d4ff",   // Ciano
-        Vestuária: "#eab308", // Amarelo
-        Café: "#a16207",      // Marrom
-        Outros: "#8b949e",    // Cinza
+        Mercado: "#3b82f6", Lanche: "#f59e0b", Saúde: "#ef4444", Almoço: "#22c55e",
+        Contas: "#a855f7", Lazer: "#ec4899", Casinha: "#00d4ff",
+        Vestuária: "#eab308", Café: "#a16207", Outros: "#8b949e",
       };
+      const METODO_COR = { debito: "#3b82f6", credito: "#f59e0b", indefinido: "#4b5563" };
+      const METODO_LABEL = { debito: "Débito", credito: "Crédito", indefinido: "Indefinido" };
+
+      let ultimasTransacoes = []; // cache local pra reabrir edição sem esperar novo snapshot
+      let editingId = null;
 
       function formatHora(timestamp) {
         if (!timestamp || !timestamp.toDate) return "--:--";
@@ -312,41 +378,167 @@
 
       function metodoTagHtml(metodo) {
         if (!metodo || metodo === "indefinido") return "";
-        const cor = metodo === "credito" ? "#f59e0b" : "#3b82f6";
-        const label = metodo === "credito" ? "Crédito" : "Débito";
-        return `<span class="tag" style="color:${cor};background:${cor}22;margin-left:4px;">${label}</span>`;
+        const cor = METODO_COR[metodo];
+        return `<span class="tag" style="color:${cor};background:${cor}22;">${METODO_LABEL[metodo]}</span>`;
       }
 
       function parcelaTagHtml(parcela) {
         if (!parcela || !parcela.total) return "";
-        return `<span class="tag" style="color:#ec4899;background:#ec489922;margin-left:4px;">${parcela.atual}/${parcela.total}</span>`;
+        return `<span class="tag" style="color:#ec4899;background:#ec489922;">${parcela.atual}/${parcela.total}</span>`;
       }
 
+      // ── LINHA NORMAL ──
+      function rowHtml(t) {
+        const valorNum = Number(t.valor) || 0;
+        const cat = t.categoria || "Outros";
+        const color = colorMap[cat] || colorMap["Outros"];
+        return `
+          <tr>
+            <td style="color: #8b949e; width: 42px;">${formatHora(t.data)}</td>
+            <td style="font-weight: 600;">
+              ${t.dono ? `<span style="color:#8b949e;font-size:0.68rem;">${t.dono}</span><br>` : ""}${t.descricao || ""}
+            </td>
+            <td>
+              <span class="tag" style="color: ${color}; background: ${color}22;">${cat}</span>
+              ${metodoTagHtml(t.metodo)}${parcelaTagHtml(t.parcela)}
+            </td>
+            <td class="val-cell">
+              R$ ${valorNum.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+              <div class="row-actions full-only">
+                <button title="Editar" onclick="iniciarEdicao('${t.id}')">✏️</button>
+                <button class="btn-del" title="Excluir" onclick="excluirTransacao('${t.id}')">🗑️</button>
+              </div>
+            </td>
+          </tr>`;
+      }
+
+      // ── LINHA EM MODO EDIÇÃO ──
+      function editRowHtml(t) {
+        const catOptions = CATEGORIAS.map(c => `<option value="${c}" ${c === t.categoria ? "selected" : ""}>${c}</option>`).join("");
+        const metodoOptions = Object.keys(METODO_LABEL).map(m => `<option value="${m}" ${m === (t.metodo || "indefinido") ? "selected" : ""}>${METODO_LABEL[m]}</option>`).join("");
+        return `
+          <tr>
+            <td colspan="4" style="background:rgba(168,85,247,0.05);">
+              <input class="edit-input" id="edit-desc-${t.id}" type="text" value="${(t.descricao || "").replace(/"/g, "&quot;")}" placeholder="Descrição">
+              <div style="display:flex; gap:6px;">
+                <select class="edit-select" id="edit-cat-${t.id}">${catOptions}</select>
+                <select class="edit-select" id="edit-metodo-${t.id}">${metodoOptions}</select>
+                <input class="edit-input" id="edit-valor-${t.id}" type="number" step="0.01" value="${Number(t.valor) || 0}" style="max-width:100px;">
+              </div>
+              <div class="edit-actions">
+                <button class="btn-cancelar" onclick="cancelarEdicao()">Cancelar</button>
+                <button class="btn-salvar" onclick="salvarEdicao('${t.id}')">Salvar</button>
+              </div>
+            </td>
+          </tr>`;
+      }
+
+      window.iniciarEdicao = function (id) {
+        editingId = id;
+        renderTudo(ultimasTransacoes);
+      };
+
+      window.cancelarEdicao = function () {
+        editingId = null;
+        renderTudo(ultimasTransacoes);
+      };
+
+      window.salvarEdicao = async function (id) {
+        const descricao = document.getElementById(`edit-desc-${id}`).value.trim();
+        const categoria = document.getElementById(`edit-cat-${id}`).value;
+        const metodo = document.getElementById(`edit-metodo-${id}`).value;
+        const valor = parseFloat(document.getElementById(`edit-valor-${id}`).value) || 0;
+        try {
+          await updateDoc(doc(db, "transacoes", id), { descricao, categoria, metodo, valor });
+          editingId = null; // o onSnapshot já vai re-renderizar sozinho com o dado novo
+        } catch (e) {
+          console.error("Erro ao salvar:", e);
+          alert("Não consegui salvar. Confere se as Regras do Firestore liberam update.");
+        }
+      };
+
+      window.excluirTransacao = async function (id) {
+        if (!confirm("Excluir essa transação?")) return;
+        try {
+          await deleteDoc(doc(db, "transacoes", id));
+        } catch (e) {
+          console.error("Erro ao excluir:", e);
+          alert("Não consegui excluir. Confere se as Regras do Firestore liberam delete.");
+        }
+      };
+
+      // ── ÚLTIMOS 3 MESES ──
+      function mesLabel(date) {
+        const label = date.toLocaleDateString("pt-BR", { month: "long" });
+        return label.charAt(0).toUpperCase() + label.slice(1);
+      }
+
+      function computeUltimosMeses(transacoes, n = 3) {
+        const hoje = new Date();
+        const meses = [];
+        for (let i = n - 1; i >= 0; i--) {
+          const d = new Date(hoje.getFullYear(), hoje.getMonth() - i, 1);
+          meses.push({ key: `${d.getFullYear()}-${d.getMonth()}`, label: mesLabel(d), total: 0, categorias: {} });
+        }
+        const porChave = Object.fromEntries(meses.map((m) => [m.key, m]));
+
+        transacoes.forEach((t) => {
+          if (!t.data || !t.data.toDate) return;
+          const d = t.data.toDate();
+          const key = `${d.getFullYear()}-${d.getMonth()}`;
+          const mes = porChave[key];
+          if (!mes) return;
+          const valor = Number(t.valor) || 0;
+          const cat = t.categoria || "Outros";
+          mes.total += valor;
+          mes.categorias[cat] = (mes.categorias[cat] || 0) + valor;
+        });
+
+        meses.forEach((m) => {
+          const entries = Object.entries(m.categorias).sort((a, b) => b[1] - a[1]);
+          m.topCategoria = entries.length ? entries[0][0] : null;
+          m.topValor = entries.length ? entries[0][1] : 0;
+        });
+        return meses;
+      }
+
+      function renderMeses(transacoes) {
+        const meses = computeUltimosMeses(transacoes, 3);
+        document.getElementById("lista-meses").innerHTML = meses
+          .map((m) => {
+            const cor = m.topCategoria ? (colorMap[m.topCategoria] || colorMap["Outros"]) : "#4b5563";
+            const subLinha = m.topCategoria
+              ? `<span class="mes-top-dot" style="background:${cor}"></span>${m.topCategoria}: R$ ${m.topValor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`
+              : "Sem gastos";
+            return `
+              <div class="mes-row">
+                <div class="mes-row-top">
+                  <span class="mes-nome">${m.label}</span>
+                  <span class="mes-total">R$ ${m.total.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+                </div>
+                <div class="mes-top-cat">${subLinha}</div>
+              </div>`;
+          })
+          .join("");
+      }
+
+      // ── RENDER GERAL ──
       function renderTudo(transacoes) {
+        ultimasTransacoes = transacoes;
         let totalGeral = 0;
         let catTotals = {};
+        let metodoTotals = { debito: 0, credito: 0, indefinido: 0 };
         let html = "";
 
         transacoes.forEach((t, index) => {
           const valorNum = Number(t.valor) || 0;
           const cat = t.categoria || "Outros";
-          const color = colorMap[cat] || colorMap["Outros"];
-
           totalGeral += valorNum;
           catTotals[cat] = (catTotals[cat] || 0) + valorNum;
+          metodoTotals[t.metodo || "indefinido"] = (metodoTotals[t.metodo || "indefinido"] || 0) + valorNum;
 
           if (index < 10) {
-            html += `
-              <tr>
-                <td style="color: #8b949e; width: 45px;">${formatHora(t.data)}</td>
-                <td style="font-weight: 600;">
-                  ${t.dono ? `<span style="color:#8b949e;font-size:0.68rem;">${t.dono}</span><br>` : ""}${t.descricao || ""}
-                </td>
-                <td>
-                  <span class="tag" style="color: ${color}; background: ${color}22;">${cat}</span>${metodoTagHtml(t.metodo)}${parcelaTagHtml(t.parcela)}
-                </td>
-                <td class="val-cell">R$ ${valorNum.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</td>
-              </tr>`;
+            html += editingId === t.id ? editRowHtml(t) : rowHtml(t);
           }
         });
 
@@ -365,28 +557,9 @@
         document.getElementById("gasto-total").innerText =
           `R$ ${totalGeral.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
 
-        const catOrdenadas = Object.entries(catTotals).sort((a, b) => b[1] - a[1]);
-        const maiorCatValor = catOrdenadas.length ? catOrdenadas[0][1] : 1;
-        document.getElementById("lista-categorias").innerHTML = catOrdenadas
-          .map(([cat, valor]) => {
-            const color = colorMap[cat] || colorMap["Outros"];
-            const pct = Math.max(4, (valor / maiorCatValor) * 100);
-            return `
-              <div class="cat-row">
-                <div class="cat-row-top">
-                  <span class="cat-row-name">
-                    <span class="cat-row-dot" style="background:${color}"></span>${cat}
-                  </span>
-                  <span class="cat-row-value">R$ ${valor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
-                </div>
-                <div class="cat-row-bar-bg">
-                  <div class="cat-row-bar" style="width:${pct}%; background:${color};"></div>
-                </div>
-              </div>`;
-          })
-          .join("");
-
+        renderMeses(transacoes);
         renderChart(catTotals, totalGeral);
+        renderMetodoChart(metodoTotals);
 
         setTimeout(() => {
           const height = document.getElementById("content-wrapper").offsetHeight;
@@ -406,38 +579,57 @@
           plugins: [ChartDataLabels],
           data: {
             labels: labels,
-            datasets: [
-              {
-                data: Object.values(dataObj),
-                backgroundColor: colors,
-                borderWidth: 2,
-                borderColor: "#161b22",
-                hoverOffset: 15,
-              },
-            ],
+            datasets: [{ data: Object.values(dataObj), backgroundColor: colors, borderWidth: 2, borderColor: "#161b22", hoverOffset: 15 }],
           },
           options: {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
               legend: {
-                display: true,
+                display: !isCompact,
                 position: "bottom",
                 labels: { color: "#8b949e", font: { size: 10 }, usePointStyle: true, padding: 12 },
               },
               datalabels: {
                 color: "#fff",
-                font: { family: "Montserrat", weight: "bold", size: 10 },
+                font: { family: "Montserrat", weight: "bold", size: isCompact ? 8 : 10 },
                 formatter: (value) => {
                   let p = ((value / totalGeral) * 100).toFixed(0);
-                  return p > 4 ? p + "%" : "";
+                  return p > 6 ? p + "%" : "";
                 },
               },
-              tooltip: {
-                callbacks: {
-                  label: (context) => ` ${context.label}: R$ ${context.parsed.toLocaleString("pt-BR")}`,
-                },
+              tooltip: { callbacks: { label: (context) => ` ${context.label}: R$ ${context.parsed.toLocaleString("pt-BR")}` } },
+            },
+          },
+        });
+      }
+
+      function renderMetodoChart(dataObj) {
+        const canvas = document.getElementById("metodoChart");
+        if (!canvas || isCompact) return; // só existe/renderiza no expandido
+        const ctx = canvas.getContext("2d");
+        if (window.chartMetodoInst) window.chartMetodoInst.destroy();
+
+        const entries = Object.entries(dataObj).filter(([, v]) => v > 0);
+        const labels = entries.map(([k]) => METODO_LABEL[k]);
+        const colors = entries.map(([k]) => METODO_COR[k]);
+        const total = entries.reduce((a, [, v]) => a + v, 0);
+
+        window.chartMetodoInst = new Chart(ctx, {
+          type: "doughnut",
+          plugins: [ChartDataLabels],
+          data: { labels, datasets: [{ data: entries.map(([, v]) => v), backgroundColor: colors, borderWidth: 2, borderColor: "#161b22", hoverOffset: 12 }] },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: true, position: "bottom", labels: { color: "#8b949e", font: { size: 10 }, usePointStyle: true, padding: 10 } },
+              datalabels: {
+                color: "#fff",
+                font: { family: "Montserrat", weight: "bold", size: 10 },
+                formatter: (value) => (total ? ((value / total) * 100).toFixed(0) + "%" : ""),
               },
+              tooltip: { callbacks: { label: (context) => ` ${context.label}: R$ ${context.parsed.toLocaleString("pt-BR")}` } },
             },
           },
         });
@@ -456,7 +648,7 @@
         onSnapshot(
           q,
           (snapshot) => {
-            const transacoes = snapshot.docs.map((d) => d.data());
+            const transacoes = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
             renderTudo(transacoes);
           },
           (err) => {
