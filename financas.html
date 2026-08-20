@@ -197,6 +197,20 @@
       }
       .mes-top-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
 
+      .mes-filter-select {
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        color: var(--text);
+        font-family: "Inter", sans-serif;
+        font-size: 0.68rem;
+        padding: 3px 5px;
+        max-width: 130px;
+        text-transform: none;
+        letter-spacing: normal;
+        font-weight: 500;
+      }
+
       @media (max-width: 900px) {
         .fin-grid {
           grid-template-columns: 1fr;
@@ -307,7 +321,12 @@
 
           <!-- Últimos 3 meses — aparece no compacto E no expandido -->
           <div class="fin-card" id="mes-card">
-            <div class="total-label" style="margin-bottom: 10px;">Últimos 3 Meses</div>
+            <div class="total-label" style="margin-bottom: 10px; display:flex; justify-content:space-between; align-items:center; gap:8px;">
+              <span>Últimos 3 Meses</span>
+              <select id="mes-cat-filter" class="mes-filter-select" onchange="onMesFiltroChange()">
+                <option value="">Categoria mais alta</option>
+              </select>
+            </div>
             <div class="mes-list" id="lista-meses"></div>
           </div>
         </div>
@@ -368,7 +387,19 @@
       const METODO_COR = { debito: "#3b82f6", credito: "#f59e0b", indefinido: "#4b5563" };
       const METODO_LABEL = { debito: "Débito", credito: "Crédito", indefinido: "Indefinido" };
 
+      // Gera uma cor estável (sempre a mesma pra mesma string) pra categorias
+      // que não estão no colorMap fixo — assim categorias novas/personalizadas
+      // não ficam todas cinza "Outros", cada uma pega uma cor própria.
+      function corPara(categoria) {
+        if (colorMap[categoria]) return colorMap[categoria];
+        let hash = 0;
+        for (let i = 0; i < categoria.length; i++) hash = categoria.charCodeAt(i) + ((hash << 5) - hash);
+        const hue = Math.abs(hash) % 360;
+        return `hsl(${hue}, 65%, 58%)`;
+      }
+
       let ultimasTransacoes = []; // cache local pra reabrir edição sem esperar novo snapshot
+      let ultimasSemCredito = []; // idem, mas já sem os lançamentos de crédito
       let editingId = null;
 
       function formatHora(timestamp) {
@@ -391,7 +422,7 @@
       function rowHtml(t) {
         const valorNum = Number(t.valor) || 0;
         const cat = t.categoria || "Outros";
-        const color = colorMap[cat] || colorMap["Outros"];
+        const color = corPara(cat);
         return `
           <tr>
             <td style="color: #8b949e; width: 42px;">${formatHora(t.data)}</td>
@@ -412,19 +443,35 @@
           </tr>`;
       }
 
+      // Categorias conhecidas = as fixas + qualquer categoria que já apareceu
+      // nos dados (inclusive as personalizadas que você já cadastrou antes).
+      function categoriasConhecidas() {
+        const vistas = new Set(CATEGORIAS);
+        ultimasTransacoes.forEach((t) => { if (t.categoria) vistas.add(t.categoria); });
+        return [...vistas];
+      }
+
       // ── LINHA EM MODO EDIÇÃO ──
       function editRowHtml(t) {
-        const catOptions = CATEGORIAS.map(c => `<option value="${c}" ${c === t.categoria ? "selected" : ""}>${c}</option>`).join("");
+        const opcoes = categoriasConhecidas();
+        const catAtualConhecida = opcoes.includes(t.categoria);
+        const catOptions =
+          opcoes.map(c => `<option value="${c}" ${c === t.categoria ? "selected" : ""}>${c}</option>`).join("") +
+          `<option value="__custom__" ${!catAtualConhecida ? "selected" : ""}>+ Nova categoria…</option>`;
         const metodoOptions = Object.keys(METODO_LABEL).map(m => `<option value="${m}" ${m === (t.metodo || "indefinido") ? "selected" : ""}>${METODO_LABEL[m]}</option>`).join("");
         return `
           <tr>
             <td colspan="4" style="background:rgba(168,85,247,0.05);">
               <input class="edit-input" id="edit-desc-${t.id}" type="text" value="${(t.descricao || "").replace(/"/g, "&quot;")}" placeholder="Descrição">
               <div style="display:flex; gap:6px;">
-                <select class="edit-select" id="edit-cat-${t.id}">${catOptions}</select>
+                <select class="edit-select" id="edit-cat-${t.id}" onchange="onCategoriaSelectChange('${t.id}')">${catOptions}</select>
                 <select class="edit-select" id="edit-metodo-${t.id}">${metodoOptions}</select>
                 <input class="edit-input" id="edit-valor-${t.id}" type="number" step="0.01" value="${Number(t.valor) || 0}" style="max-width:100px;">
               </div>
+              <input class="edit-input" id="edit-cat-custom-${t.id}" type="text"
+                placeholder="Nome da nova categoria"
+                value="${!catAtualConhecida ? (t.categoria || "").replace(/"/g, "&quot;") : ""}"
+                style="display:${!catAtualConhecida ? "block" : "none"};">
               <div class="edit-actions">
                 <button class="btn-cancelar" onclick="cancelarEdicao()">Cancelar</button>
                 <button class="btn-salvar" onclick="salvarEdicao('${t.id}')">Salvar</button>
@@ -432,6 +479,14 @@
             </td>
           </tr>`;
       }
+
+      window.onCategoriaSelectChange = function (id) {
+        const sel = document.getElementById(`edit-cat-${id}`);
+        const customEl = document.getElementById(`edit-cat-custom-${id}`);
+        const isCustom = sel.value === "__custom__";
+        customEl.style.display = isCustom ? "block" : "none";
+        if (isCustom) customEl.focus();
+      };
 
       window.iniciarEdicao = function (id) {
         editingId = id;
@@ -445,7 +500,10 @@
 
       window.salvarEdicao = async function (id) {
         const descricao = document.getElementById(`edit-desc-${id}`).value.trim();
-        const categoria = document.getElementById(`edit-cat-${id}`).value;
+        const catSelecionada = document.getElementById(`edit-cat-${id}`).value;
+        const categoria = catSelecionada === "__custom__"
+          ? (document.getElementById(`edit-cat-custom-${id}`).value.trim() || "Outros")
+          : catSelecionada;
         const metodo = document.getElementById(`edit-metodo-${id}`).value;
         const valor = parseFloat(document.getElementById(`edit-valor-${id}`).value) || 0;
         try {
@@ -502,14 +560,43 @@
         return meses;
       }
 
+      function atualizarOpcoesFiltroMes() {
+        const sel = document.getElementById("mes-cat-filter");
+        const atual = sel.value;
+        const opcoes = categoriasConhecidas();
+        sel.innerHTML =
+          `<option value="">Categoria mais alta</option>` +
+          opcoes.map((c) => `<option value="${c}" ${c === atual ? "selected" : ""}>${c}</option>`).join("");
+      }
+
+      window.onMesFiltroChange = function () {
+        renderMeses(ultimasSemCredito);
+      };
+
       function renderMeses(transacoes) {
+        atualizarOpcoesFiltroMes();
+        const filtro = document.getElementById("mes-cat-filter").value;
         const meses = computeUltimosMeses(transacoes, 3);
+
         document.getElementById("lista-meses").innerHTML = meses
           .map((m) => {
-            const cor = m.topCategoria ? (colorMap[m.topCategoria] || colorMap["Outros"]) : "#4b5563";
-            const subLinha = m.topCategoria
-              ? `<span class="mes-top-dot" style="background:${cor}"></span>${m.topCategoria}: R$ ${m.topValor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`
-              : "Sem gastos";
+            let nomeCat, valorCat;
+            if (filtro) {
+              nomeCat = filtro;
+              valorCat = m.categorias[filtro] || 0;
+            } else {
+              nomeCat = m.topCategoria;
+              valorCat = m.topValor;
+            }
+
+            const cor = nomeCat && valorCat > 0 ? corPara(nomeCat) : "#4b5563";
+            const subLinha =
+              nomeCat && valorCat > 0
+                ? `<span class="mes-top-dot" style="background:${cor}"></span>${nomeCat}: R$ ${valorCat.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`
+                : filtro
+                ? `Sem gastos em ${filtro}`
+                : "Sem gastos";
+
             return `
               <div class="mes-row">
                 <div class="mes-row-top">
@@ -525,6 +612,12 @@
       // ── RENDER GERAL ──
       function renderTudo(transacoes) {
         ultimasTransacoes = transacoes;
+        // Compras no crédito não contam nas somas/maior gasto/últimos 3 meses —
+        // só "saem" de fato quando a fatura é paga (isso vira outro lançamento,
+        // no débito). Mas continuam aparecendo normalmente na tabela abaixo.
+        const semCredito = transacoes.filter((t) => t.metodo !== "credito");
+        ultimasSemCredito = semCredito;
+
         let totalGeral = 0;
         let catTotals = {};
         let metodoTotals = { debito: 0, credito: 0, indefinido: 0 };
@@ -532,14 +625,17 @@
 
         transacoes.forEach((t, index) => {
           const valorNum = Number(t.valor) || 0;
-          const cat = t.categoria || "Outros";
-          totalGeral += valorNum;
-          catTotals[cat] = (catTotals[cat] || 0) + valorNum;
           metodoTotals[t.metodo || "indefinido"] = (metodoTotals[t.metodo || "indefinido"] || 0) + valorNum;
-
           if (index < 10) {
             html += editingId === t.id ? editRowHtml(t) : rowHtml(t);
           }
+        });
+
+        semCredito.forEach((t) => {
+          const valorNum = Number(t.valor) || 0;
+          const cat = t.categoria || "Outros";
+          totalGeral += valorNum;
+          catTotals[cat] = (catTotals[cat] || 0) + valorNum;
         });
 
         if (!Object.keys(catTotals).length) {
@@ -557,7 +653,7 @@
         document.getElementById("gasto-total").innerText =
           `R$ ${totalGeral.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
 
-        renderMeses(transacoes);
+        renderMeses(semCredito);
         renderChart(catTotals, totalGeral);
         renderMetodoChart(metodoTotals);
 
@@ -572,7 +668,7 @@
         if (window.chartInst) window.chartInst.destroy();
 
         const labels = Object.keys(dataObj);
-        const colors = labels.map((l) => colorMap[l] || colorMap["Outros"]);
+        const colors = labels.map((l) => corPara(l));
 
         window.chartInst = new Chart(ctx, {
           type: "doughnut",
