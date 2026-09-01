@@ -100,10 +100,10 @@
     .status-pill.live { color: var(--green); border-color: rgba(0,255,136,0.3); }
     .status-pill.live::before { content: '● '; }
 
-    /* ── FILEIRA ÚNICA: 4 colunas (Tarefas+Boss / Financeiro / Valorant / Futebol) ── */
+    /* ── FILEIRA ÚNICA: 3 colunas (Tarefas+Boss / Financeiro / Valorant) ── */
     .dashboard-row {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(3, 1fr);
       gap: 16px;
       align-items: stretch;
       flex: 1;
@@ -379,7 +379,7 @@
     </div>
 
     <!-- VALORANT -->
-    <div class="module" id="container-valorant">
+    <!-- <div class="module" id="container-valorant">
       <div class="module-header">
         <span class="module-title">🎮 Tabela Valorant</span>
         <div class="module-controls">
@@ -388,7 +388,7 @@
         </div>
       </div>
       <iframe src="./valorant/valorant.html?compact=1" class="module-frame" id="frame-valorant"></iframe>
-    </div>
+    </div> -->
 
     <!-- FUTEBOL -->
     <div class="module" id="container-futebol">
