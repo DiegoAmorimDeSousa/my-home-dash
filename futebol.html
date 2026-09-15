@@ -381,6 +381,78 @@
         box-shadow: 0 0 12px rgba(168, 85, 247, 0.6);
       }
 
+      .add-time-form {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        background: var(--card-bg);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 20px;
+        align-items: center;
+      }
+      .add-time-input, .add-time-select {
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        color: var(--text-main);
+        font-family: "Inter", sans-serif;
+        font-size: 0.85rem;
+        padding: 8px 10px;
+      }
+      .add-time-input { flex: 1; min-width: 160px; }
+      .btn-cancel-time {
+        background: rgba(255,255,255,0.06);
+        color: var(--text-dim);
+        border: none;
+        font-family: "Inter", sans-serif;
+        font-size: 0.8rem;
+        padding: 8px 14px;
+        border-radius: 6px;
+        cursor: pointer;
+      }
+
+      .hall-of-fame {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 16px;
+        margin-bottom: 40px;
+      }
+      .season-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 18px;
+        border-bottom: 3px solid gold;
+      }
+      .season-year {
+        font-family: "Montserrat", sans-serif;
+        font-size: 1.3rem;
+        font-weight: 800;
+        color: gold;
+      }
+      .season-champion {
+        margin: 8px 0 12px;
+        font-size: 0.95rem;
+      }
+      .season-champion b { color: #fff; }
+      .season-divisoes {
+        font-size: 0.75rem;
+        color: var(--text-dim);
+        line-height: 1.6;
+      }
+      .season-recorde {
+        font-size: 0.72rem;
+        color: var(--text-dim);
+        margin-top: 3px;
+      }
+
+      /* ── MODO COMPACTO: esconde tudo que não é a tabela ── */
+      body.is-compact .full-only {
+        display: none !important;
+      }
+
       /* ── MODO COMPACTO (resumo) ── */
       html, body.is-compact { height: 100%; }
       body.is-compact #futebol-content {
@@ -427,13 +499,13 @@
         <span>⚽ Tabela de Classificação</span>
       </div>
 
-      <div class="config-panel">
+      <div class="config-panel full-only">
         <div class="checkbox-grid" id="filter-area"></div>
       </div>
 
-      <div class="stats-grid" id="cards-area"></div>
+      <div class="stats-grid full-only" id="cards-area"></div>
 
-      <div class="filter-buttons-container">
+      <div class="filter-buttons-container full-only" id="filter-buttons-row">
         <button
           class="btn-filter active"
           onclick="mudarDivisao('Brasil', 'A', this)"
@@ -455,6 +527,24 @@
         >
           Todos
         </button>
+        <button class="btn-filter" style="margin-left:auto;background:transparent;color:var(--purple);" onclick="toggleAddTimeForm()">
+          + Adicionar Time
+        </button>
+      </div>
+
+      <div class="add-time-form full-only" id="add-time-form" style="display:none">
+        <input type="text" id="novo-time-nome" class="add-time-input" placeholder="Nome do time">
+        <input type="text" id="novo-time-logo" class="add-time-input" placeholder="URL do escudo/logo">
+        <select id="novo-time-pais" class="add-time-select">
+          <option value="Brasil">Brasil</option>
+          <option value="Mundo">Mundo</option>
+        </select>
+        <select id="novo-time-divisao" class="add-time-select">
+          <option value="A">Divisão A</option>
+          <option value="B">Divisão B</option>
+        </select>
+        <button class="btn-action" onclick="adicionarTimeUI()">Adicionar</button>
+        <button class="btn-cancel-time" onclick="toggleAddTimeForm(false)">Cancelar</button>
       </div>
 
       <div class="card-table">
@@ -493,9 +583,14 @@
         <div class="module-header" style="margin-bottom: 0">
           <span>🏆 Chaveamento Copa Mata-Mata (32 Times)</span>
         </div>
-        <button class="btn-action" onclick="iniciarNovoTorneio32()">
-          Gerar Novo Chaveamento
-        </button>
+        <div style="display:flex; gap:10px;">
+          <button class="btn-action" style="background:var(--red);" onclick="encerrarTemporadaUI()">
+            Encerrar Temporada
+          </button>
+          <button class="btn-action" onclick="iniciarNovoTorneio32()">
+            Gerar Novo Chaveamento
+          </button>
+        </div>
       </div>
 
       <div class="tournament-wrapper" id="bracket-section">
@@ -525,260 +620,161 @@
           <div class="bracket-round" id="round-right-4"></div>
         </div>
       </div>
+
+      <div class="module-header full-only" style="margin-top: 40px;">
+        <span>🏆 Salão dos Campeões</span>
+      </div>
+      <div class="hall-of-fame full-only" id="hall-of-fame">
+        <div style="color:var(--text-dim); font-size:0.85rem;">Nenhuma temporada encerrada ainda.</div>
+      </div>
     </div>
 
-    <script>
+    <script type="module">
       const params = new URLSearchParams(location.search);
       const isCompact = params.get("compact") === "1";
       const frameId = params.get("frameId") || "frame-futebol";
       if (isCompact) document.body.classList.add("is-compact");
 
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
+      import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
+      import {
+        getFirestore, collection, doc, setDoc, onSnapshot, query, orderBy,
+      } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyCbsu_WD-7L-elljYBJ0j1naGiSGCnhDbE",
+        authDomain: "my-home-dash-b554d.firebaseapp.com",
+        projectId: "my-home-dash-b554d",
+        storageBucket: "my-home-dash-b554d.firebasestorage.app",
+        messagingSenderId: "225507144407",
+        appId: "1:225507144407:web:833b14e322dca4c8b23692",
+      };
+      const fbApp = initializeApp(firebaseConfig);
+      const auth = getAuth(fbApp);
+      const db = getFirestore(fbApp);
+
+      // URL do Apps Script do futebol — só usada pra disparar as ações
+      // administrativas (gerar chaveamento / encerrar temporada). A leitura
+      // de dados agora é 100% Firestore, em tempo real.
       const url_macro_apps_script =
         "https://script.google.com/macros/s/AKfycbyzVZOl7vbrtlVtre_12NFn-UqkT0zAJuEN_u865x6gDMnY6jesiNTZ44thrlOqb6hoTw/exec";
-      const url_futebol =
-        "https://docs.google.com/spreadsheets/d/e/2PACX-1vTPYLZxLUF_-LbaTOC0lAuArsOgbduUo3VWqc2Q_ZSUvvrgV_xlnnzTCaUgh78k2yxbDyDdT18IKofI/pub?gid=0&single=true&output=csv";
 
       let logoDatabase = {};
       let typePAIS = "Brasil";
       let season = "A";
+      let todosOsTimes = [];
+      let todosConfrontos = [];
 
-      const metrics = [
-        {
-          id: "v_max",
-          label: "Mais Vitórias",
-          col: 4,
-          type: "max",
-          active: true,
-        },
-        {
-          id: "v_min",
-          label: "Menos Vitórias",
-          col: 4,
-          type: "min",
-          active: true,
-        },
-        {
-          id: "e_max",
-          label: "Mais Empates",
-          col: 5,
-          type: "max",
-          active: true,
-        },
-        {
-          id: "e_min",
-          label: "Menos Empates",
-          col: 5,
-          type: "min",
-          active: true,
-        },
-        {
-          id: "d_max",
-          label: "Mais Derrotas",
-          col: 6,
-          type: "max",
-          active: true,
-        },
-        {
-          id: "d_min",
-          label: "Menos Derrotas",
-          col: 6,
-          type: "min",
-          active: true,
-        },
-        {
-          id: "gm_max",
-          label: "Melhor Ataque",
-          col: 7,
-          type: "max",
-          active: true,
-        },
-        {
-          id: "gm_min",
-          label: "Pior Ataque",
-          col: 7,
-          type: "min",
-          active: true,
-        },
-        {
-          id: "gs_min",
-          label: "Melhor Defesa",
-          col: 8,
-          type: "min",
-          active: true,
-        },
-        {
-          id: "gs_max",
-          label: "Pior Defesa",
-          col: 8,
-          type: "max",
-          active: true,
-        },
-        {
-          id: "sg_max",
-          label: "Maior Saldo",
-          col: 9,
-          type: "max",
-          active: true,
-        },
-        {
-          id: "sg_min",
-          label: "Pior Saldo",
-          col: 9,
-          type: "min",
-          active: true,
-        },
-        {
-          id: "ap_max",
-          label: "Aproveitamento",
-          col: 10,
-          type: "max",
-          active: true,
-        },
-        {
-          id: "ap_min",
-          label: "Pior Aproveitamento",
-          col: 10,
-          type: "min",
-          active: true,
-        },
-        { id: "j_max", label: "Mais Jogos", col: 3, type: "max", active: true },
-        {
-          id: "j_min",
-          label: "Menos Jogos",
-          col: 3,
-          type: "min",
-          active: true,
-        },
-      ];
-
-      function mudarDivisao(pais, divisao, elementoClicado) {
-        document.querySelectorAll(".btn-filter").forEach((btn) => {
-          btn.classList.remove("active");
-        });
-
-        elementoClicado.classList.add("active");
-
-        typePAIS = pais;
-        season = divisao;
-
-        initFutebol();
+      function slugify(nome) {
+        return nome
+          .toString()
+          .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/(^-|-$)/g, "");
       }
 
-      async function initFutebol() {
-        try {
-          const resp = await fetch(url_futebol);
-          const data = await resp.text();
-          const rows = data
-            .split("\n")
-            .map((r) => r.split(","))
-            .slice(1);
+      const metrics = [
+        { id: "v_max", label: "Mais Vitórias", campo: "vitorias", type: "max" },
+        { id: "v_min", label: "Menos Vitórias", campo: "vitorias", type: "min" },
+        { id: "e_max", label: "Mais Empates", campo: "empates", type: "max" },
+        { id: "e_min", label: "Menos Empates", campo: "empates", type: "min" },
+        { id: "d_max", label: "Mais Derrotas", campo: "derrotas", type: "max" },
+        { id: "d_min", label: "Menos Derrotas", campo: "derrotas", type: "min" },
+        { id: "gm_max", label: "Melhor Ataque", campo: "golsMarcados", type: "max" },
+        { id: "gm_min", label: "Pior Ataque", campo: "golsMarcados", type: "min" },
+        { id: "gs_min", label: "Melhor Defesa", campo: "golsSofridos", type: "min" },
+        { id: "gs_max", label: "Pior Defesa", campo: "golsSofridos", type: "max" },
+        { id: "sg_max", label: "Maior Saldo", campo: "saldoGols", type: "max" },
+        { id: "sg_min", label: "Pior Saldo", campo: "saldoGols", type: "min" },
+        { id: "ap_max", label: "Aproveitamento", campo: "aproveitamento", type: "max" },
+        { id: "ap_min", label: "Pior Aproveitamento", campo: "aproveitamento", type: "min" },
+        { id: "j_max", label: "Mais Jogos", campo: "jogos", type: "max" },
+        { id: "j_min", label: "Menos Jogos", campo: "jogos", type: "min" },
+      ];
 
-          const tbody = document.getElementById("futebol-body");
-          if (!tbody) return;
-          tbody.innerHTML = "";
+      window.mudarDivisao = function (pais, divisao, elementoClicado) {
+        document.querySelectorAll(".btn-filter").forEach((btn) => btn.classList.remove("active"));
+        elementoClicado.classList.add("active");
+        typePAIS = pais;
+        season = divisao;
+        renderTabela();
+      };
 
-          let results = {};
-          metrics.forEach(
-            (m) =>
-              (results[m.id] = {
-                val: m.type === "max" ? -Infinity : Infinity,
-              }),
-          );
+      function renderTabela() {
+        const tbody = document.getElementById("futebol-body");
+        if (!tbody) return;
 
-          const newRows = rows.filter((row) => {
-            if (season === "Todos") return row;
-            return row && row[12] === typePAIS && row[13] === season;
-          });
+        let results = {};
+        metrics.forEach((m) => { results[m.id] = { val: m.type === "max" ? -Infinity : Infinity }; });
 
-          newRows.forEach((cols, i) => {
-            if (cols.length < 15) return;
+        let filtrados = todosOsTimes.filter((t) => {
+          if (season === "Todos") return true;
+          return t.pais === typePAIS && t.divisao === season;
+        });
+        filtrados.sort((a, b) => {
+          if ((b.pontos || 0) !== (a.pontos || 0)) return (b.pontos || 0) - (a.pontos || 0);
+          if ((b.saldoGols || 0) !== (a.saldoGols || 0)) return (b.saldoGols || 0) - (a.saldoGols || 0);
+          return (b.golsMarcados || 0) - (a.golsMarcados || 0);
+        });
 
-            const logoUrl = cols[0] ? cols[0].trim() : "";
-            const timeNome = cols[1] ? cols[1].trim() : "";
-            if (timeNome) {
-              logoDatabase[timeNome] = logoUrl;
-            }
+        let html = "";
+        filtrados.forEach((t, i) => {
+          logoDatabase[t.nome] = t.logo || "";
+          const pos = i + 1;
 
-            const pos = i + 1;
-            const posAnt = parseInt(cols[17]);
-            let trendIcon = "";
+          let trendIcon = "";
+          if (t.tendencia === "sobe") {
+            const dif = (t.posicaoAnterior || pos) - pos;
+            trendIcon = `<span style="color:#00ff88;font-size:0.75rem;font-weight:bold;">▲${dif > 0 ? dif : ""}</span>`;
+          } else if (t.tendencia === "desce") {
+            const dif = pos - (t.posicaoAnterior || pos);
+            trendIcon = `<span style="color:var(--red);font-size:0.75rem;font-weight:bold;">▼${dif > 0 ? dif : ""}</span>`;
+          } else if (t.tendencia === "igual" && (t.jogos || 0) > 0) {
+            trendIcon = `<span style="color:var(--text-dim);font-size:0.75rem;">●</span>`;
+          }
 
-            if (!isNaN(posAnt)) {
-              const diferenca = posAnt - pos;
-              if (diferenca > 0) {
-                trendIcon = `<span style="color: #00ff88; font-size: 0.75rem; font-weight: bold;">▲${diferenca}</span>`;
-              } else if (diferenca < 0) {
-                trendIcon = `<span style="color: var(--red); font-size: 0.75rem; font-weight: bold;">▼${Math.abs(diferenca)}</span>`;
-              } else {
-                trendIcon = `<span style="color: var(--text-dim); font-size: 0.75rem;">●</span>`;
-              }
-            }
+          const cl = pos === 1 ? "pos-1" : pos <= 6 ? "pos-g6" : pos > filtrados.length - 6 ? "pos-z6" : "";
+          const pct = (t.aproveitamento || 0).toString().replace(".", ",");
 
-            let cl =
-              pos === 1
-                ? "pos-1"
-                : pos <= 6
-                  ? "pos-g6"
-                  : pos > newRows.length - 6
-                    ? "pos-z6"
-                    : "";
-
-            tbody.innerHTML += `
+          html += `
             <tr>
               <td class="${cl}">${pos}</td>
-              <td style="width: 25px; text-align: center;">${trendIcon}</td>
-              <td><div class="team-cell"><img src="${logoUrl}" class="team-logo"><span>${timeNome}</span></div></td>
-              <td class="bold">${cols[2]}</td>
-              <td>${cols[3]}</td><td>${cols[4]}</td><td>${cols[5]}</td><td>${cols[6]}</td>
-              <td>${cols[7]}</td><td>${cols[8]}</td><td>${cols[9]}</td>
-              <td style="color:var(--purple); font-weight:700">${cols[10]}</td>
-              <td style="font-size:0.75rem; color:var(--text-dim); font-weight: 500;">${cols[14]}</td>
+              <td style="width:25px;text-align:center;">${trendIcon}</td>
+              <td><div class="team-cell"><img src="${t.logo || ""}" class="team-logo"><span>${t.nome}</span></div></td>
+              <td class="bold">${t.pontos || 0}</td>
+              <td>${t.jogos || 0}</td><td>${t.vitorias || 0}</td><td>${t.empates || 0}</td><td>${t.derrotas || 0}</td>
+              <td>${t.golsMarcados || 0}</td><td>${t.golsSofridos || 0}</td><td>${t.saldoGols || 0}</td>
+              <td style="color:var(--purple);font-weight:700">${pct}%</td>
+              <td style="font-size:0.75rem;color:var(--text-dim);font-weight:500;">${t.ultimoPlacar || ""}</td>
             </tr>`;
 
-            metrics.forEach((m) => {
-              let v =
-                parseFloat(cols[m.col]?.replace("%", "").replace(",", ".")) ||
-                0;
-              if (
-                (m.type === "max" && v > results[m.id].val) ||
-                (m.type === "min" && v < results[m.id].val)
-              ) {
-                results[m.id] = {
-                  val: v,
-                  time: timeNome,
-                  logo: logoUrl,
-                  isPct: cols[m.col]?.includes("%"),
-                };
-              }
-            });
+          metrics.forEach((m) => {
+            const v = Number(t[m.campo]) || 0;
+            if ((m.type === "max" && v > results[m.id].val) || (m.type === "min" && v < results[m.id].val)) {
+              results[m.id] = { val: v, time: t.nome, logo: t.logo || "", isPct: m.campo === "aproveitamento" };
+            }
           });
+        });
 
-          renderDashboard(results);
-          if (!isCompact) carregarEExibirMataMataDoSheets();
-          else sendHeight();
-        } catch (e) {
-          console.error("Erro na carga do Futebol:", e);
-        }
+        tbody.innerHTML = html || `<tr><td colspan="13" style="text-align:center;color:var(--text-dim);padding:20px;">Nenhum time cadastrado nessa divisão ainda.</td></tr>`;
+        renderDashboard(results);
+        sendHeight();
       }
 
       function renderDashboard(results) {
         const fArea = document.getElementById("filter-area");
         const cArea = document.getElementById("cards-area");
         if (!fArea || !cArea) return;
-
         fArea.innerHTML = "";
         cArea.innerHTML = "";
 
         metrics.forEach((m) => {
           const d = results[m.id];
-          if (!d || !d.logo) return;
-
-          fArea.innerHTML += `
-          <label><input type="checkbox" ${m.active ? "checked" : ""} onchange="toggleCard('${m.id}')"> ${m.label}</label>
-        `;
-
+          if (!d || !d.time) return;
+          fArea.innerHTML += `<label><input type="checkbox" checked onchange="toggleCard('${m.id}')"> ${m.label}</label>`;
           cArea.innerHTML += `
-          <div class="stat-card ${m.active ? "" : "hidden"}" id="card-${m.id}">
+          <div class="stat-card" id="card-${m.id}">
               <span class="stat-label">${m.label}</span>
               <img src="${d.logo}" class="stat-img">
               <span class="stat-val">${d.val}${d.isPct ? "%" : ""}</span>
@@ -787,199 +783,211 @@
         });
       }
 
-      function toggleCard(id) {
+      window.toggleCard = function (id) {
         const card = document.getElementById(`card-${id}`);
         if (card) card.classList.toggle("hidden");
         sendHeight();
-      }
+      };
 
-      async function iniciarNovoTorneio32() {
-        if (url_macro_apps_script === "SUA_URL_DO_WEB_APP_AQUI") {
-          alert(
-            "Configure a URL do seu Apps Script no arquivo para usar este recurso!",
-          );
-          return;
-        }
-        if (
-          confirm(
-            "Deseja sortear um novo chaveamento de 32 times direto na planilha?",
-          )
-        ) {
-          await fetch(`${url_macro_apps_script}?action=gerar`);
-          setTimeout(initFutebol, 1500);
-        }
-      }
+      // ── ADICIONAR TIME ──
+      window.toggleAddTimeForm = function (show) {
+        const form = document.getElementById("add-time-form");
+        const willShow = show !== undefined ? show : form.style.display === "none";
+        form.style.display = willShow ? "flex" : "none";
+      };
 
-      async function carregarEExibirMataMataDoSheets() {
+      window.adicionarTimeUI = async function () {
+        const nome = document.getElementById("novo-time-nome").value.trim();
+        const logo = document.getElementById("novo-time-logo").value.trim();
+        const pais = document.getElementById("novo-time-pais").value;
+        const divisao = document.getElementById("novo-time-divisao").value;
+        if (!nome) { alert("Digita o nome do time."); return; }
+
         try {
-          if (url_macro_apps_script === "SUA_URL_DO_WEB_APP_AQUI") return;
+          await setDoc(doc(db, "times", slugify(nome)), {
+            nome, logo, pais, divisao,
+            pontos: 0, jogos: 0, vitorias: 0, empates: 0, derrotas: 0,
+            golsMarcados: 0, golsSofridos: 0, saldoGols: 0, aproveitamento: 0,
+            ultimoPlacar: "", posicaoAtual: 0, posicaoAnterior: 0, tendencia: "igual",
+          });
+          document.getElementById("novo-time-nome").value = "";
+          document.getElementById("novo-time-logo").value = "";
+          toggleAddTimeForm(false);
+        } catch (e) {
+          console.error("Erro ao adicionar time:", e);
+          alert("Não consegui adicionar. Confere as Regras do Firestore pra coleção 'times'.");
+        }
+      };
 
-          const resp = await fetch(
-            `${url_macro_apps_script}?t=${new Date().getTime()}`,
-          );
-          const confrontosBrutos = await resp.json();
+      // ── AÇÕES ADMINISTRATIVAS (via Apps Script) ──
+      window.iniciarNovoTorneio32 = async function () {
+        if (!confirm("Deseja sortear um novo chaveamento de 32 times?")) return;
+        try {
+          await fetch(`${url_macro_apps_script}?action=gerar`);
+          alert("Chaveamento gerado! Pode levar alguns segundos pra aparecer.");
+        } catch (e) {
+          alert("Erro ao gerar chaveamento: " + e.message);
+        }
+      };
 
-          if (!confrontosBrutos || confrontosBrutos.length === 0) return;
+      window.encerrarTemporadaUI = async function () {
+        if (!confirm("Isso arquiva os campeões/recordes do ano, zera as estatísticas de todos os times e aplica promoção/rebaixamento (6 sobem / 6 descem). Não dá pra desfazer. Confirmar?")) return;
+        try {
+          const resp = await fetch(`${url_macro_apps_script}?action=encerrar`);
+          const texto = await resp.text();
+          alert(texto);
+        } catch (e) {
+          alert("Erro ao encerrar temporada: " + e.message);
+        }
+      };
 
-          const f32 = confrontosBrutos.filter((r) => r[0] === "Fase de 32");
-          const oit = confrontosBrutos.filter((r) => r[0] === "Oitavas");
-          const qua = confrontosBrutos.filter((r) => r[0] === "Quartas");
-          const sem = confrontosBrutos.filter((r) => r[0] === "Semifinal");
-          const fin = confrontosBrutos.filter((r) => r[0] === "Final");
+      // ── CHAVEAMENTO (mata-mata) ──
+      function renderBracket() {
+        if (!todosConfrontos.length) return;
 
-          distribuirFase("Fase de 32", f32, "round-left-32", "round-right-32");
-          distribuirFase("Oitavas", oit, "round-left-16", "round-right-16");
-          distribuirFase("Quartas", qua, "round-left-8", "round-right-8");
-          distribuirFase("Semifinal", sem, "round-left-4", "round-right-4");
+        const porFase = (fase) => todosConfrontos.filter((c) => c.fase === fase);
+        distribuirFase("Fase de 32", porFase("Fase de 32"), "round-left-32", "round-right-32");
+        distribuirFase("Oitavas", porFase("Oitavas"), "round-left-16", "round-right-16");
+        distribuirFase("Quartas", porFase("Quartas"), "round-left-8", "round-right-8");
+        distribuirFase("Semifinal", porFase("Semifinal"), "round-left-4", "round-right-4");
 
-          const areaFinal = document.getElementById("round-center-final");
-          const areaPodio = document.getElementById("podium-area");
-
-          if (areaFinal && fin.length > 0) {
-            const c = fin[0];
-            const confObj = {
-              t1: c[1] || "Aguardando...",
-              t2: c[2] || "Aguardando...",
-              ida1: c[3],
-              ida2: c[4],
-              volta1: c[5],
-              volta2: c[6],
-              vencedor: c[8] || "",
-            };
-            areaFinal.innerHTML = buildMatchHTML(confObj);
-
-            if (c[8]) {
-              areaPodio.innerHTML = `
+        const fin = porFase("Final");
+        const areaFinal = document.getElementById("round-center-final");
+        const areaPodio = document.getElementById("podium-area");
+        if (areaFinal && fin.length > 0) {
+          const c = fin[0];
+          areaFinal.innerHTML = buildMatchHTML(c);
+          if (c.vencedor) {
+            areaPodio.innerHTML = `
               <div style="text-align:center; border:2px dashed #00ff88; padding:15px; border-radius:12px; background:rgba(0,255,136,0.03); margin-top: 15px;">
                 <span style="font-size:0.65rem; display:block; color:var(--text-dim); font-weight:700; letter-spacing:1px;">🏆 CAMPEÃO</span>
-                <span style="font-family:'Montserrat', sans-serif; font-size:1.1rem; display:block; font-weight:800; color:#00ff88; margin-top:5px;">${c[8]}</span>
+                <span style="font-family:'Montserrat', sans-serif; font-size:1.1rem; display:block; font-weight:800; color:#00ff88; margin-top:5px;">${c.vencedor}</span>
               </div>`;
-            } else {
-              areaPodio.innerHTML = "";
-            }
+          } else {
+            areaPodio.innerHTML = "";
           }
-
-          sendHeight();
-        } catch (err) {
-          console.error("Erro ao estruturar chaves do mata-mata:", err);
         }
+        sendHeight();
       }
 
-      function distribuirFase(
-        nomeFase,
-        listaConfrontos,
-        idContainerEsquerdo,
-        idContainerDireito,
-      ) {
-        const containerEsq = document.getElementById(idContainerEsquerdo);
-        const containerDir = document.getElementById(idContainerDireito);
-
+      function distribuirFase(nomeFase, lista, idEsq, idDir) {
+        const containerEsq = document.getElementById(idEsq);
+        const containerDir = document.getElementById(idDir);
         if (!containerEsq || !containerDir) return;
 
+        lista.sort((a, b) => a.slot - b.slot);
         let htmlEsq = `<div class="round-title-node">${nomeFase}</div>`;
         let htmlDir = `<div class="round-title-node">${nomeFase}</div>`;
+        const metade = Math.ceil(lista.length / 2);
 
-        const metade = Math.ceil(listaConfrontos.length / 2);
-
-        listaConfrontos.forEach((c, index) => {
-          const confObj = {
-            t1: c[1] || "Aguardando...",
-            t2: c[2] || "Aguardando...",
-            ida1: c[3],
-            ida2: c[4],
-            volta1: c[5],
-            volta2: c[6],
-            vencedor: c[8] || "",
-          };
-
-          if (index < metade) {
-            htmlEsq += buildMatchHTML(confObj);
-          } else {
-            htmlDir += buildMatchHTML(confObj);
-          }
+        lista.forEach((c, index) => {
+          if (index < metade) htmlEsq += buildMatchHTML(c);
+          else htmlDir += buildMatchHTML(c);
         });
-
         containerEsq.innerHTML = htmlEsq;
         containerDir.innerHTML = htmlDir;
       }
 
       function buildMatchHTML(conf) {
-        const logo1 = logoDatabase[conf.t1] || "";
-        const logo2 = logoDatabase[conf.t2] || "";
+        const t1 = conf.time1 || "Aguardando...";
+        const t2 = conf.time2 || "Aguardando...";
+        const logo1 = logoDatabase[t1] || "";
+        const logo2 = logoDatabase[t2] || "";
+        const imgTag1 = logo1 ? `<img src="${logo1}" class="bracket-logo">` : `<div style="width:20px"></div>`;
+        const imgTag2 = logo2 ? `<img src="${logo2}" class="bracket-logo">` : `<div style="width:20px"></div>`;
 
-        const imgTag1 = logo1
-          ? `<img src="${logo1}" class="bracket-logo">`
-          : `<div style="width:20px"></div>`;
-        const imgTag2 = logo2
-          ? `<img src="${logo2}" class="bracket-logo">`
-          : `<div style="width:20px"></div>`;
-
-        // ANALISE E TRATAMENTO DE EMPATE NO AGREGADO DOS DOIS JOGOS
-        const ida1Int = parseInt(conf.ida1);
-        const ida2Int = parseInt(conf.ida2);
-        const volta1Int = parseInt(conf.volta1);
-        const volta2Int = parseInt(conf.volta2);
-
-        let totalTime1 =
-          (isNaN(ida1Int) ? 0 : ida1Int) + (isNaN(volta1Int) ? 0 : volta1Int);
-        let totalTime2 =
-          (isNaN(ida2Int) ? 0 : ida2Int) + (isNaN(volta2Int) ? 0 : volta2Int);
-
-        // Só ativa a regra se ambos os jogos possuírem valores numéricos preenchidos
-        const jogosConcluidos =
-          !isNaN(ida1Int) &&
-          !isNaN(ida2Int) &&
-          !isNaN(volta1Int) &&
-          !isNaN(volta2Int);
-        const houveEmpateAgregado =
-          jogosConcluidos && totalTime1 === totalTime2;
+        const total1 = (Number(conf.ida1) || 0) + (Number(conf.volta1) || 0);
+        const total2 = (Number(conf.ida2) || 0) + (Number(conf.volta2) || 0);
+        const ambosCompletos = (conf.pernas1 || 0) === 2 && (conf.pernas2 || 0) === 2;
+        const houveEmpateAgregado = ambosCompletos && total1 === total2;
 
         const renderTimeLinha = (nome, logoTag, ida, volta, souTime1) => {
           const isWinner = conf.vencedor === nome && nome !== "Aguardando...";
-          const validIda = ida !== undefined && ida !== "" ? ida : "-";
-          const validVolta = volta !== undefined && volta !== "" ? volta : "-";
-
+          const validIda = ida !== undefined && ida !== null && ida !== "" ? ida : "-";
+          const validVolta = volta !== undefined && volta !== null && volta !== "" ? volta : "-";
           return `
           <div class="matchup-team ${isWinner ? "winner" : ""}">
             <div class="team-info-block">
               ${logoTag}
               <span style="${nome === "Aguardando..." ? "opacity:0.3" : ""}">${nome}</span>
             </div>
-            ${
-              nome !== "Aguardando..."
-                ? `
+            ${nome !== "Aguardando..." ? `
               <div class="scores-display">
                 <div class="score-box">${validIda}</div>
                 <div class="score-box">${validVolta}</div>
-                ${houveEmpateAgregado ? `<div class="score-box penalty-box">${souTime1 ? totalTime1 : totalTime2}</div>` : ""}
-              </div>
-            `
-                : ""
-            }
+                ${houveEmpateAgregado ? `<div class="score-box penalty-box">${souTime1 ? total1 : total2}</div>` : ""}
+              </div>` : ""}
           </div>`;
         };
 
         return `
         <div class="matchup">
-          ${renderTimeLinha(conf.t1, imgTag1, conf.ida1, conf.volta1, true)}
+          ${renderTimeLinha(t1, imgTag1, conf.ida1, conf.volta1, true)}
           <div style="height:1px; background:var(--border); margin:1px 0;"></div>
-          ${renderTimeLinha(conf.t2, imgTag2, conf.ida2, conf.volta2, false)}
+          ${renderTimeLinha(t2, imgTag2, conf.ida2, conf.volta2, false)}
         </div>`;
+      }
+
+      // ── SALÃO DOS CAMPEÕES ──
+      function renderHallOfFame(temporadas) {
+        const el = document.getElementById("hall-of-fame");
+        if (!el) return;
+        if (!temporadas.length) {
+          el.innerHTML = `<div style="color:var(--text-dim);font-size:0.85rem;">Nenhuma temporada encerrada ainda.</div>`;
+          return;
+        }
+        el.innerHTML = temporadas.map((s) => {
+          const divisoes = Object.entries(s.campeoesPorDivisao || {})
+            .map(([chave, time]) => `${chave}: <b style="color:#fff">${time}</b>`)
+            .join("<br>");
+          const recordesTop = Object.values(s.recordes || {}).slice(0, 3)
+            .map((r) => `${r.label}: ${r.time} (${r.valor})`)
+            .join(" · ");
+          return `
+            <div class="season-card">
+              <div class="season-year">${s.ano}</div>
+              <div class="season-champion">🏆 Campeão Geral: <b>${s.campeaoGeral}</b></div>
+              <div class="season-divisoes">${divisoes}</div>
+              <div class="season-recorde">${recordesTop}</div>
+            </div>`;
+        }).join("");
+        sendHeight();
       }
 
       function sendHeight() {
         setTimeout(() => {
           const el = document.getElementById("futebol-content");
           if (!el) return;
-          const height = el.scrollHeight;
-          window.parent.postMessage(
-            { height: height, id: frameId },
-            "*",
-          );
-        }, 300);
+          window.parent.postMessage({ height: el.scrollHeight, id: frameId }, "*");
+        }, 200);
       }
 
-      initFutebol();
+      // ── INICIALIZAÇÃO ──
+      async function iniciar() {
+        try {
+          await signInAnonymously(auth);
+        } catch (e) {
+          console.error("Erro no login anônimo:", e);
+          return;
+        }
+
+        onSnapshot(collection(db, "times"), (snapshot) => {
+          todosOsTimes = snapshot.docs.map((d) => d.data());
+          renderTabela();
+          renderBracket(); // logos podem ter mudado
+        });
+
+        onSnapshot(collection(db, "matamata"), (snapshot) => {
+          todosConfrontos = snapshot.docs.map((d) => d.data());
+          renderBracket();
+        });
+
+        onSnapshot(query(collection(db, "temporadas"), orderBy("ano", "desc")), (snapshot) => {
+          renderHallOfFame(snapshot.docs.map((d) => d.data()));
+        });
+      }
+
+      iniciar();
     </script>
   </body>
 </html>
