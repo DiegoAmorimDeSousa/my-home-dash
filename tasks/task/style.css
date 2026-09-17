@@ -359,3 +359,30 @@ body.is-compact .tasks-grid::-webkit-scrollbar { width: 6px; }
 body.is-compact .tasks-grid::-webkit-scrollbar-track { background: transparent; }
 body.is-compact .tasks-grid::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 4px; opacity: 0.5; }
 body.is-compact .tasks-grid { scrollbar-width: thin; scrollbar-color: var(--accent) transparent; }
+/* ── MÉTRICAS POR TAREFA (últimos 30 dias) ── */
+.task-metrics {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-height: 320px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+.metric-row { font-size: 0.75rem; }
+.metric-top {
+    display: flex; justify-content: space-between; align-items: baseline;
+    margin-bottom: 4px; gap: 8px;
+}
+.metric-name { font-weight: 600; }
+.metric-val { font-family: 'Share Tech Mono', monospace; font-weight: 700; }
+.metric-bar-bg {
+    height: 6px; border-radius: 3px;
+    background: rgba(255,255,255,0.06); overflow: hidden;
+}
+.metric-bar { height: 100%; border-radius: 3px; transition: width 0.4s ease; }
+.metric-sub { font-size: 0.65rem; color: var(--dim); margin-top: 3px; }
+
+.task-metrics::-webkit-scrollbar { width: 6px; }
+.task-metrics::-webkit-scrollbar-track { background: transparent; }
+.task-metrics::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 4px; }
+.task-metrics { scrollbar-width: thin; scrollbar-color: var(--accent) transparent; }

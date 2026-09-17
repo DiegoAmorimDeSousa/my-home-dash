@@ -103,7 +103,7 @@
     /* ── FILEIRA ÚNICA: 4 colunas (Tarefas+Boss / Financeiro / Valorant / Futebol) ── */
     .dashboard-row {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(3, 1fr);
       gap: 16px;
       align-items: stretch;
       flex: 1;
@@ -234,7 +234,7 @@
       background: var(--surface2);
       border: 1px solid var(--accent);
       border-radius: 10px;
-      width: min(3000px, 92vw);
+      width: min(1100px, 92vw);
       max-height: 90vh;
       box-shadow: 0 0 60px var(--glow-purple);
       display: flex;
@@ -378,7 +378,9 @@
       <iframe src="financas.html?compact=1" class="module-frame" id="frame-financas"></iframe>
     </div>
 
-    <!-- VALORANT -->
+    <!-- VALORANT — desativado (aguardando fonte de dados confiável).
+         Pra reativar: descomenta esse bloco, volta o grid .dashboard-row
+         pra repeat(4, 1fr) e descomenta a linha do valorant em PAINEIS.
     <div class="module" id="container-valorant">
       <div class="module-header">
         <span class="module-title">🎮 Tabela Valorant</span>
@@ -389,6 +391,7 @@
       </div>
       <iframe src="./valorant/valorant.html?compact=1" class="module-frame" id="frame-valorant"></iframe>
     </div>
+    -->
 
     <!-- FUTEBOL -->
     <div class="module" id="container-futebol">
@@ -521,7 +524,7 @@
   const PAINEIS = {
     tarefasgroup: { container: 'container-tarefasgroup', frames: ['frame-rpg', 'frame-tarefas'] },
     financas:     { container: 'container-financas',     frames: ['frame-financas'] },
-    valorant:     { container: 'container-valorant',     frames: ['frame-valorant'] },
+    // valorant: desativado junto com o HTML do card — reativa os dois juntos
     futebol:      { container: 'container-futebol',      frames: ['frame-futebol'] },
   };
 

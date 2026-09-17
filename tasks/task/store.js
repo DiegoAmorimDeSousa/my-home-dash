@@ -310,6 +310,36 @@ export async function processRollover() {
 }
 
 // ─── ANALYTICS / DASHBOARD ──────────────────────────────────────────────────
+// Estatística POR TAREFA: em quantos dos últimos N dias cada tarefa foi
+// concluída. Serve pra responder "como tá indo o 'não comer lanche'?" —
+// quanto maior o percentual, mais dias a tarefa foi cumprida.
+export function computeTaskStats(owner, dias = 30) {
+    const state = load();
+    const tasks = state.tasks[owner] || [];
+    const hoje = todayStr();
+
+    // monta a lista de datas da janela (inclui hoje)
+    const janela = [];
+    for (let i = dias - 1; i >= 0; i--) janela.push(dateStrOffset(hoje, -i));
+
+    return tasks.map((t) => {
+        let feitas = 0;
+        janela.forEach((data) => {
+            const doneMap = (state.log[data] && state.log[data][owner]) || {};
+            if (doneMap[t.id]) feitas++;
+        });
+        const pct = dias > 0 ? Math.round((feitas / dias) * 100) : 0;
+        return {
+            id: t.id,
+            nome: t.nome,
+            dano: Number(t.dano) || 30,
+            feitas,
+            dias,
+            pct,
+        };
+    }).sort((a, b) => b.pct - a.pct);
+}
+
 export function computeStats(owner) {
     const state = load();
     const tasks = state.tasks[owner] || [];

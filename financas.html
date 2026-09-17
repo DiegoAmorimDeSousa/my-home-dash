@@ -233,6 +233,9 @@
         min-height: 0;
         display: flex;
         flex-direction: column;
+        /* a regra base usa align-items:start — em flex-column isso vira
+           alinhamento HORIZONTAL e impede a coluna de ocupar a largura toda */
+        align-items: stretch;
       }
       body.is-compact .col-left {
         display: flex;
@@ -251,18 +254,29 @@
       body.is-compact .highlight-card { margin-bottom: 8px; padding: 10px; flex-shrink: 0; }
       body.is-compact .total-value { font-size: 1.5rem; }
       body.is-compact .total-header { display: none; } /* some o número grande, só sobra o gráfico */
-      body.is-compact .chart-container { height: 130px; }
 
-      /* Card dos últimos 3 meses: no compacto estica e rola */
-      body.is-compact #mes-card {
+      /* O card do gráfico é quem estica pra preencher a sobra da coluna —
+         assim a rosca cresce em vez de deixar um buraco vazio embaixo. */
+      body.is-compact #chart-card {
         flex: 1;
-        min-height: 0;
+        min-height: 150px;
+        display: flex;
+        flex-direction: column;
+      }
+      body.is-compact .chart-container {
+        flex: 1;
+        min-height: 130px;
+      }
+
+      /* Card dos últimos 3 meses: tamanho do conteúdo, no fim da coluna */
+      body.is-compact #mes-card {
+        flex: 0 0 auto;
         display: flex;
         flex-direction: column;
         margin-bottom: 0;
+        max-height: 45%;
       }
       body.is-compact .mes-list {
-        flex: 1;
         min-height: 0;
         overflow-y: auto;
         padding-right: 4px;
@@ -301,7 +315,7 @@
             </div>
           </div>
 
-          <div class="fin-card">
+          <div class="fin-card" id="chart-card">
             <div class="total-header">
               <div class="total-label" style="display:flex; justify-content:space-between; align-items:center;">
                 <span>Gastos Totais <span id="periodo-label-2" style="opacity:0.7;"></span></span>

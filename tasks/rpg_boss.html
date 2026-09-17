@@ -287,7 +287,58 @@ body {
 }
 @keyframes loadFill { to{width:100%;} }
 
+/* ── SALA DE TROFÉUS ── */
+.trophy-room {
+  padding: 16px 18px 20px;
+  background: #07090f;
+}
+.trophy-title {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 10px;
+  color: #ffd700;
+  letter-spacing: 1px;
+  margin-bottom: 14px;
+}
+.trophy-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 12px;
+}
+.trophy-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,215,0,0.25);
+  border-radius: 8px;
+  padding: 10px 8px;
+  text-align: center;
+}
+.trophy-card img {
+  width: 56px; height: 56px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  filter: grayscale(0.15);
+}
+.trophy-nome {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px;
+  color: #ffd700;
+  margin-top: 6px;
+  line-height: 1.5;
+  word-break: break-word;
+}
+.trophy-meta {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px;
+  color: #4a5568;
+  margin-top: 4px;
+}
+.trophy-vazio {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  color: #4a5568;
+}
+
 /* ── MODO COMPACTO (resumo) ── */
+body.is-compact .trophy-room { display: none; }
 body.is-compact { min-height: 150px; }
 body.is-compact .arena { height: 150px; }
 body.is-compact .boss-col { flex: 0 0 80px; }
@@ -345,8 +396,14 @@ body.is-compact .type-row { margin-bottom: 4px; }
   </div>
 </div>
 
+<!-- SALA DE TROFÉUS — só no modo expandido -->
+<div class="trophy-room" id="trophyRoom">
+  <div class="trophy-title">🏆 Sala de Troféus</div>
+  <div class="trophy-grid" id="trophyGrid"></div>
+</div>
+
 <script type="module">
-import { ensureBoss, avancarProximoBoss } from './task/store.js';
+import { ensureBoss, avancarProximoBoss, getTrofeus } from './task/store.js';
 
 const params = new URLSearchParams(location.search);
 const isCompact = params.get('compact') === '1';
@@ -475,9 +532,31 @@ function renderInfo(boss) {
 
 function notifyParent() {
   if(window.parent&&window.parent!==window){
-    const h = document.querySelector('.arena').getBoundingClientRect().height;
+    // No compacto a altura é a da arena (card pequeno, altura fixa).
+    // No expandido precisa ser a página inteira, senão a sala de troféus
+    // fica cortada no modal.
+    const h = isCompact
+      ? document.querySelector('.arena').getBoundingClientRect().height
+      : document.body.scrollHeight;
     window.parent.postMessage({id:frameId,height:h},'*');
   }
+}
+
+function renderTrofeus() {
+  const grid = document.getElementById('trophyGrid');
+  if (!grid || isCompact) return;
+  const trofeus = getTrofeus();
+  if (!trofeus.length) {
+    grid.innerHTML = '<div class="trophy-vazio">Nenhum boss derrotado ainda. Conclua tarefas pra causar dano!</div>';
+    return;
+  }
+  grid.innerHTML = trofeus.map(t => `
+    <div class="trophy-card">
+      ${t.sprite ? `<img src="${t.sprite}" alt="${t.nome}">` : ''}
+      <div class="trophy-nome">${t.nome}</div>
+      <div class="trophy-meta">SALA #${t.salaId}</div>
+      <div class="trophy-meta">${(t.derrotadoEm || '').split('-').reverse().join('/')}</div>
+    </div>`).join('');
 }
 
 async function render(animate) {
@@ -503,6 +582,7 @@ async function render(animate) {
   updateHP(boss.vidaAtual, boss.vidaMaxima, animate);
   if (boss.vidaAtual <= 0 && !state.isDead) { state.isDead = true; triggerDeath(); }
   loading.classList.add('hidden');
+  renderTrofeus();
   notifyParent();
 }
 

@@ -2,9 +2,9 @@ import { notifyBossChanged, notifyTasksChanged } from './boss.js';
 import {
     getOwners, getTasks, addTask, removeTask,
     isTaskDoneToday, setTaskDone, dmgInfoFor, DANO_PRESETS,
-    applyDamageToBoss, processRollover, computeStats,
+    applyDamageToBoss, processRollover, computeStats, computeTaskStats,
 } from './store.js';
-import { updateProgressBars, updateStats, renderInsights } from './ui.js';
+import { updateProgressBars, updateStats, renderInsights, renderTaskMetrics } from './ui.js';
 
 function sendHeight() {
     const frameId = new URLSearchParams(location.search).get('frameId') || 'frame-tarefas';
@@ -157,6 +157,7 @@ export function renderAll() {
         if (owner === 'Beatriz') { counts.bH = stats.hoje.feitas; counts.bT = stats.hoje.total; }
 
         renderInsights(owner, stats);
+        renderTaskMetrics(owner, computeTaskStats(owner, 30));
     });
 
     updateProgressBars(counts);

@@ -17,6 +17,38 @@ export function updateStats(c) {
 
 const OWNER_PREFIX = { Diego: 'd', Beatriz: 'b' };
 
+// Métricas por tarefa: uma barra por tarefa mostrando em quantos dos
+// últimos 30 dias ela foi cumprida. Cor muda conforme a taxa.
+export function renderTaskMetrics(owner, taskStats) {
+    const p = OWNER_PREFIX[owner];
+    if (!p) return;
+    const el = document.getElementById(`${p}-task-metrics`);
+    if (!el) return;
+
+    if (!taskStats.length) {
+        el.innerHTML = `<div style="font-size:0.72rem;color:var(--dim)">Sem tarefas cadastradas</div>`;
+        return;
+    }
+
+    el.innerHTML = taskStats.map((t) => {
+        let cor = 'var(--red)';
+        if (t.pct >= 70) cor = 'var(--green)';
+        else if (t.pct >= 40) cor = 'var(--orange)';
+
+        return `
+        <div class="metric-row">
+            <div class="metric-top">
+                <span class="metric-name">${t.nome}</span>
+                <span class="metric-val" style="color:${cor}">${t.pct}%</span>
+            </div>
+            <div class="metric-bar-bg">
+                <div class="metric-bar" style="width:${t.pct}%; background:${cor};"></div>
+            </div>
+            <div class="metric-sub">${t.feitas} de ${t.dias} dias</div>
+        </div>`;
+    }).join('');
+}
+
 export function renderInsights(owner, stats) {
     const p = OWNER_PREFIX[owner];
     if (!p) return;
