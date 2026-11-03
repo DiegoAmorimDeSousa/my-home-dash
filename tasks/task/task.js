@@ -1,8 +1,9 @@
 import { notifyBossChanged, notifyTasksChanged } from './boss.js';
 import {
     getOwners, getTasks, addTask, removeTask,
-    isTaskDoneToday, setTaskDone, dmgInfoFor, DANO_PRESETS,
-    applyDamageToBoss, processRollover, computeStats, computeTaskStats,
+    isTaskDone, setTaskDone, dmgInfoFor, DANO_PRESETS,
+    applyDamageToBoss, healBoss, processRollover, computeStats, computeTaskStats,
+    countDay, shiftDay, todayStr,
 } from './store.js';
 import { updateProgressBars, updateStats, renderInsights, renderTaskMetrics } from './ui.js';
 
@@ -17,9 +18,31 @@ const OWNER_META = {
     Beatriz:  { listId: 'list-bia'   },
 };
 
+// ─── DIA SELECIONADO (navegação pra marcar/desmarcar dias anteriores) ───────
+// null = "seguir o dia de hoje" (assim, se o painel ficar aberto na virada da
+// meia-noite, ele passa pro dia novo sozinho).
+const isCompact = new URLSearchParams(location.search).get('compact') === '1';
+let diaEscolhido = null;
+function diaAtual() { return isCompact ? todayStr() : (diaEscolhido || todayStr()); }
+function fmtDia(d) { const [y, m, dd] = d.split('-'); return `${dd}/${m}`; }
+
+window.mudarDia = function (delta) {
+    const novo = shiftDay(diaAtual(), delta);
+    if (novo > todayStr()) return; // não existe "amanhã"
+    diaEscolhido = novo === todayStr() ? null : novo;
+    renderAll();
+};
+window.irParaHoje = function () { diaEscolhido = null; renderAll(); };
+window.irParaDia = function (valor) {
+    if (!valor) return;
+    if (valor > todayStr()) valor = todayStr();
+    diaEscolhido = valor === todayStr() ? null : valor;
+    renderAll();
+};
+
 // ─── RENDER DE UMA TAREFA ───────────────────────────────────────────────────
 function taskItemHtml(owner, task) {
-    const isDone   = isTaskDoneToday(owner, task.id);
+    const isDone   = isTaskDone(owner, task.id, diaAtual());
     const dmgInfo  = dmgInfoFor(task.dano);
     const horaHtml = task.hora ? `<span class="task-time">${task.hora}</span>` : '';
     const sharedHtml = (task.donos && task.donos.length > 1)
@@ -36,37 +59,42 @@ function taskItemHtml(owner, task) {
         </div>
         <div class="task-actions">
             <input type="checkbox" class="checkbox"
-                ${isDone ? 'checked' : ''} ${isDone ? 'disabled' : ''}
-                onclick="markDone(this,'${owner}','${task.id}')">
+                ${isDone ? 'checked' : ''}
+                onclick="toggleDone(this,'${owner}','${task.id}')">
             <button class="task-del-btn" title="Excluir tarefa" onclick="deleteTask('${task.id}')">🗑</button>
         </div>
     </div>`;
 }
 
-// ─── MARK DONE (100% local, instantâneo) ────────────────────────────────────
-async function markDone(el, owner, taskId) {
+// ─── MARCAR / DESMARCAR (100% local, instantâneo) ───────────────────────────
+// Marcar causa dano no boss; desmarcar devolve esse dano (sempre o valor da
+// tarefa, em qualquer dia). Em dia passado isso NÃO desfaz a recarga que o boss
+// já teve quando aquele dia virou em branco — esquecer de marcar continua
+// custando essa recarga, mas o registro (sequências, métricas) fica correto.
+async function toggleDone(el, owner, taskId) {
     const task = getTasks(owner).find(t => t.id === taskId);
     if (!task) return;
     const dmgInfo = dmgInfoFor(task.dano);
+    const marcando = el.checked;
 
-    setTaskDone(owner, taskId, true);
+    setTaskDone(owner, taskId, marcando, diaAtual());
 
     const item = el.closest('.task-item');
-    el.checked = true; el.disabled = true;
-    item.classList.add('done');
+    item.classList.toggle('done', marcando);
 
     const dmgEl = document.createElement('span');
     dmgEl.className = 'sync-label';
-    dmgEl.innerText = `⚔ -${dmgInfo.dano} HP no boss`;
+    dmgEl.innerText = marcando ? `⚔ -${dmgInfo.dano} HP no boss` : `♥ +${dmgInfo.dano} HP no boss`;
     item.querySelector('.task-info').appendChild(dmgEl);
     setTimeout(() => dmgEl.remove(), 2500);
 
-    await applyDamageToBoss(dmgInfo.dano);
+    if (marcando) await applyDamageToBoss(dmgInfo.dano);
+    else await healBoss(dmgInfo.dano);
     notifyBossChanged(); // ping instantâneo pro card/modal do boss redesenhar
 
     renderAll();
 }
-window.markDone = markDone;
+window.toggleDone = toggleDone;
 
 // ─── CRIAR / EXCLUIR TAREFA (formulário único, dono(s) selecionável) ────────
 function populateDanoSelect() {
@@ -142,7 +170,10 @@ window.toggleAddForm = toggleAddForm;
 // ─── RENDER GERAL ────────────────────────────────────────────────────────────
 export function renderAll() {
     const owners = getOwners();
-    const counts = { dH: 0, dT: 0, bH: 0, bT: 0 };
+    const dia = diaAtual();
+    const ehHoje = dia === todayStr();
+    const counts = { dH: 0, dT: 0, bH: 0, bT: 0,
+        rotulo: ehHoje ? 'hoje' : `em ${fmtDia(dia)}`, rotuloCurto: ehHoje ? 'Hoje' : fmtDia(dia) };
 
     owners.forEach(owner => {
         const meta = OWNER_META[owner];
@@ -153,8 +184,9 @@ export function renderAll() {
         document.getElementById(meta.listId).innerHTML = html;
 
         const stats = computeStats(owner);
-        if (owner === 'Diego') { counts.dH = stats.hoje.feitas; counts.dT = stats.hoje.total; }
-        if (owner === 'Beatriz') { counts.bH = stats.hoje.feitas; counts.bT = stats.hoje.total; }
+        const diaCount = countDay(owner, dia);
+        if (owner === 'Diego') { counts.dH = diaCount.feitas; counts.dT = diaCount.total; }
+        if (owner === 'Beatriz') { counts.bH = diaCount.feitas; counts.bT = diaCount.total; }
 
         renderInsights(owner, stats);
         renderTaskMetrics(owner, computeTaskStats(owner, 30));
@@ -162,6 +194,14 @@ export function renderAll() {
 
     updateProgressBars(counts);
     updateStats(counts);
+
+    const dInput = document.getElementById('dia-input');
+    if (dInput) { dInput.value = dia; dInput.max = todayStr(); }
+    const next = document.getElementById('day-next');
+    if (next) next.disabled = ehHoje;
+    const info = document.getElementById('day-info');
+    if (info) info.innerText = ehHoje ? '' :
+        `Editando ${fmtDia(dia)} — marcar/desmarcar ajusta a vida do boss como se fosse no dia.`;
 
     setTimeout(sendHeight, 60);
 }

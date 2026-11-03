@@ -386,3 +386,30 @@ body.is-compact .tasks-grid { scrollbar-width: thin; scrollbar-color: var(--acce
 .task-metrics::-webkit-scrollbar-track { background: transparent; }
 .task-metrics::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 4px; }
 .task-metrics { scrollbar-width: thin; scrollbar-color: var(--accent) transparent; }
+
+/* ── NAVEGAÇÃO POR DIA ── */
+.day-nav {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    margin-bottom: 12px;
+}
+.day-btn {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7rem;
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 5px 10px;
+    cursor: pointer;
+}
+.day-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+.day-btn:disabled { opacity: 0.35; cursor: default; }
+.day-today { border-color: var(--accent); color: var(--accent); }
+.day-input {
+    background: var(--bg); color: var(--text);
+    border: 1px solid var(--border); border-radius: 4px;
+    font-family: 'Share Tech Mono', monospace; font-size: 0.72rem;
+    padding: 4px 8px; color-scheme: dark;
+}
+.day-info { font-size: 0.68rem; color: var(--orange); }
+body.is-compact .day-nav { display: none; }

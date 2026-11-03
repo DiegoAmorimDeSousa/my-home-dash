@@ -3,16 +3,19 @@ export function updateProgressBars(c) {
     const pB = c.bT ? Math.round((c.bH / c.bT) * 100) : 0;
     document.getElementById('pct-diego').innerText = pD + '%';
     document.getElementById('bar-diego').style.width = pD + '%';
-    document.getElementById('sub-diego').innerText = `${c.dH} de ${c.dT} tarefas concluídas hoje`;
+    document.getElementById('sub-diego').innerText = `${c.dH} de ${c.dT} tarefas concluídas ${c.rotulo || 'hoje'}`;
     document.getElementById('pct-bia').innerText = pB + '%';
     document.getElementById('bar-bia').style.width = pB + '%';
-    document.getElementById('sub-bia').innerText = `${c.bH} de ${c.bT} tarefas concluídas hoje`;
+    document.getElementById('sub-bia').innerText = `${c.bH} de ${c.bT} tarefas concluídas ${c.rotulo || 'hoje'}`;
 }
 
 // c aqui é só o resumo do dia (dH/dT/bH/bT) — semana/mês/top vêm de renderInsights
 export function updateStats(c) {
     document.getElementById('d-hoje').innerText = `${c.dH}/${c.dT}`;
     document.getElementById('b-hoje').innerText = `${c.bH}/${c.bT}`;
+    const ld = document.getElementById('lbl-d-hoje'), lb = document.getElementById('lbl-b-hoje');
+    if (ld) ld.innerText = c.rotuloCurto || 'Hoje';
+    if (lb) lb.innerText = c.rotuloCurto || 'Hoje';
 }
 
 const OWNER_PREFIX = { Diego: 'd', Beatriz: 'b' };

@@ -287,6 +287,46 @@
       .mes-list::-webkit-scrollbar-track { background: transparent; }
       .mes-list::-webkit-scrollbar-thumb { background: var(--purple); border-radius: 4px; opacity: 0.5; }
       .mes-list { scrollbar-width: thin; scrollbar-color: var(--purple) transparent; }
+
+      /* ── TOP 3 / CARTÃO MÃE / GRÁFICOS DE BARRA / FILTROS ── */
+      .top3 { width: 100%; margin-top: 8px; display: flex; flex-direction: column; gap: 5px; }
+      .top3-row { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 0.78rem; }
+      .top3-name { display: flex; align-items: center; gap: 6px; font-weight: 600; text-transform: uppercase; }
+      .top3-rank { color: #8b949e; font-size: 0.65rem; font-weight: 700; }
+      .top3-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+      .top3-val { font-weight: 800; }
+      .top3-first { font-family: "Montserrat", sans-serif; }
+      .top3-first .top3-name { color: var(--purple); font-weight: 800; font-size: 1rem; }
+      .top3-first .top3-val { font-size: 1.15rem; }
+      .top3-vazio { font-size: 0.8rem; color: #8b949e; text-align: center; }
+
+      .mae-card { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+      .mae-valor { font-family: "Montserrat", sans-serif; font-weight: 800; font-size: 1.25rem; color: #ec4899; white-space: nowrap; }
+      .mae-sub { font-size: 0.68rem; color: #8b949e; }
+
+      .col-right { min-width: 0; }
+      .charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+      .chart-box { min-width: 0; }
+      .bar-container { position: relative; height: 190px; margin-top: 8px; }
+      .chart-note { font-size: 0.7rem; color: #8b949e; margin-top: 6px; }
+
+      .filtros { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; align-items: center; }
+      .filtro-input {
+        background: var(--bg); border: 1px solid var(--border); border-radius: 4px;
+        color: var(--text); font-family: "Inter", sans-serif; font-size: 0.72rem; padding: 5px 8px;
+      }
+      .filtro-busca { flex: 1; min-width: 140px; }
+      .btn-limpar {
+        background: transparent; border: 1px solid var(--border); color: #8b949e;
+        border-radius: 4px; font-size: 0.7rem; padding: 5px 10px; cursor: pointer;
+      }
+      .btn-limpar:hover { border-color: var(--purple); color: var(--purple); }
+      .lista-resumo { font-size: 0.7rem; color: #8b949e; margin-bottom: 6px; }
+      .lista-scroll { max-height: 520px; overflow-y: auto; padding-right: 4px; }
+      .lista-scroll::-webkit-scrollbar { width: 6px; }
+      .lista-scroll::-webkit-scrollbar-track { background: transparent; }
+      .lista-scroll::-webkit-scrollbar-thumb { background: var(--purple); border-radius: 4px; }
+      .lista-scroll { scrollbar-width: thin; scrollbar-color: var(--purple) transparent; }
     </style>
   </head>
   <body>
@@ -298,21 +338,16 @@
       <div class="fin-grid">
         <div class="col-left">
           <div class="highlight-card" id="top-expense-card">
-            <div class="total-label">MAIOR GASTO <span id="periodo-label-1" style="opacity:0.7;"></span></div>
-            <div
-              id="top-cat-name"
-              style="
-                font-family: &quot;Montserrat&quot;;
-                color: var(--purple);
-                font-size: 1.1rem;
-                margin-top: 5px;
-              "
-            >
-              ---
+            <div class="total-label">TOP 3 GASTOS <span id="periodo-label-1" style="opacity:0.7;"></span></div>
+            <div class="top3" id="top3-list"></div>
+          </div>
+
+          <div class="fin-card mae-card" id="mae-card">
+            <div>
+              <div class="total-label">💳 Cartão Mãe <span id="periodo-label-3" style="opacity:0.7;"></span></div>
+              <div class="mae-sub" id="mae-sub" style="text-align:left;margin-top:3px;"></div>
             </div>
-            <div id="top-cat-value" style="font-weight: 800; font-size: 1.3rem">
-              R$ 0,00
-            </div>
+            <div class="mae-valor" id="mae-valor">R$ 0,00</div>
           </div>
 
           <div class="fin-card" id="chart-card">
@@ -352,23 +387,42 @@
           </div>
         </div>
 
-        <div class="fin-card">
-          <div
-            class="total-label"
-            style="
-              margin-bottom: 15px;
-              display: flex;
-              justify-content: space-between;
-            "
-          >
-            <span>Últimas 10 Movimentações</span>
-            <span style="color: var(--purple); font-size: 0.6rem"
-              >ATUALIZADO AGORA</span
-            >
+        <div class="col-right full-only">
+          <div class="fin-card">
+            <div class="charts-row">
+              <div class="chart-box">
+                <div class="total-label" id="dia-chart-titulo">Gasto por dia</div>
+                <div class="bar-container"><canvas id="diaChart"></canvas></div>
+                <div class="chart-note" id="dia-chart-nota"></div>
+              </div>
+              <div class="chart-box">
+                <div class="total-label" id="mes-chart-titulo">Gasto por mês</div>
+                <div class="bar-container"><canvas id="mesChart"></canvas></div>
+                <div class="chart-note" id="mes-chart-nota"></div>
+              </div>
+            </div>
           </div>
-          <table>
-            <tbody id="lista-transacoes"></tbody>
-          </table>
+
+          <div class="fin-card">
+            <div class="total-label" style="margin-bottom: 12px; display:flex; justify-content:space-between;">
+              <span>Movimentações</span>
+              <span style="color: var(--purple); font-size: 0.6rem">ATUALIZADO AGORA</span>
+            </div>
+            <div class="filtros">
+              <select id="f-mes" class="filtro-input" onchange="onFiltroChange()"></select>
+              <select id="f-cat" class="filtro-input" onchange="onFiltroChange()"></select>
+              <select id="f-metodo" class="filtro-input" onchange="onFiltroChange()"></select>
+              <select id="f-dono" class="filtro-input" onchange="onFiltroChange()"></select>
+              <input id="f-busca" class="filtro-input filtro-busca" type="text" placeholder="Buscar descrição…" oninput="onFiltroChange()">
+              <button class="btn-limpar" onclick="limparFiltros()">Limpar</button>
+            </div>
+            <div class="lista-resumo" id="lista-resumo"></div>
+            <div class="lista-scroll">
+              <table>
+                <tbody id="lista-transacoes"></tbody>
+              </table>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -406,8 +460,19 @@
         Vestuária: "#eab308", Café: "#a16207", Outros: "#8b949e",
       };
       const METODO_LABEL_FIXO = { debito: "Débito", credito: "Crédito", cartao_mae: "Cartão Mãe" };
+      // "Cartão Mãe", "cartao mae" e "cartao_mae" são o mesmo método.
+      function normMetodo(m) {
+        return (m || "").toString().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+          .toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "");
+      }
+      function chaveMetodo(m) {
+        const n = normMetodo(m);
+        if (!n || n === "indefinido") return "indefinido";
+        return METODO_LABEL_FIXO[n] ? n : m;
+      }
+      function ehDiferido(t) { return METODOS_DIFERIDOS.includes(normMetodo(t.metodo)); }
       function metodoLabel(metodo) {
-        return METODO_LABEL_FIXO[metodo] || metodo;
+        return METODO_LABEL_FIXO[normMetodo(metodo)] || metodo;
       }
 
       // Métodos que representam pagamento "diferido" (só saem de verdade
@@ -448,6 +513,14 @@
         renderTudo(ultimasTransacoes);
       };
 
+      function formatDataHora(timestamp) {
+        if (!timestamp || !timestamp.toDate) return "--";
+        const d = timestamp.toDate();
+        const dia = d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
+        const hora = d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+        return `${dia}<br><span style="font-size:0.7rem">${hora}</span>`;
+      }
+
       function formatHora(timestamp) {
         if (!timestamp || !timestamp.toDate) return "--:--";
         return timestamp.toDate().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
@@ -455,7 +528,7 @@
 
       function metodoTagHtml(metodo) {
         if (!metodo || metodo === "indefinido") return "";
-        const cor = corPara(metodo);
+        const cor = corPara(chaveMetodo(metodo));
         return `<span class="tag" style="color:${cor};background:${cor}22;">${metodoLabel(metodo)}</span>`;
       }
 
@@ -471,7 +544,7 @@
         const color = corPara(cat);
         return `
           <tr>
-            <td style="color: #8b949e; width: 42px;">${formatHora(t.data)}</td>
+            <td style="color: #8b949e; width: 62px; font-size:0.78rem;">${formatDataHora(t.data)}</td>
             <td style="font-weight: 600;">
               ${t.dono ? `<span style="color:#8b949e;font-size:0.68rem;">${t.dono}</span><br>` : ""}${t.descricao || ""}
             </td>
@@ -501,7 +574,7 @@
       // apareceu nos dados (ex: "V.A" cadastrado direto no banco).
       function metodosConhecidos() {
         const vistos = new Set(["debito", "credito", "cartao_mae"]);
-        ultimasTransacoes.forEach((t) => { if (t.metodo && t.metodo !== "indefinido") vistos.add(t.metodo); });
+        ultimasTransacoes.forEach((t) => { if (t.metodo && t.metodo !== "indefinido") vistos.add(chaveMetodo(t.metodo)); });
         return [...vistos];
       }
 
@@ -513,7 +586,7 @@
           opcoes.map(c => `<option value="${c}" ${c === t.categoria ? "selected" : ""}>${c}</option>`).join("") +
           `<option value="__custom__" ${!catAtualConhecida ? "selected" : ""}>+ Nova categoria…</option>`;
 
-        const metodoAtual = t.metodo || "indefinido";
+        const metodoAtual = chaveMetodo(t.metodo);
         const metodoOpcoes = metodosConhecidos();
         const metodoAtualConhecido = metodoAtual === "indefinido" || metodoOpcoes.includes(metodoAtual);
         const metodoOptions =
@@ -687,29 +760,172 @@
       }
 
       // ── RENDER GERAL ──
+      // ── FILTROS DA LISTA DE MOVIMENTAÇÕES ──
+      const MESES_PT = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+      function chaveMes(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`; }
+      function rotuloMes(chave) {
+        if (chave === "todos") return "Todos os meses";
+        const [y, m] = chave.split("-");
+        return `${MESES_PT[Number(m) - 1]} ${y}`;
+      }
+      const filtrosPadrao = () => ({ mes: chaveMes(new Date()), cat: "", metodo: "", dono: "", busca: "" });
+      let filtros = filtrosPadrao();
+
+      function opcoesSelect(id, placeholder, pares, atual) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.innerHTML = (placeholder !== null ? `<option value="">${placeholder}</option>` : "") +
+          pares.map(([v, l]) => `<option value="${String(v).replace(/"/g, "&quot;")}" ${v === atual ? "selected" : ""}>${l}</option>`).join("");
+      }
+
+      function atualizarOpcoesFiltros() {
+        // meses presentes nos dados (mais recente primeiro) + mês atual sempre
+        const meses = new Set([chaveMes(new Date())]);
+        ultimasTransacoes.forEach((t) => { if (t.data && t.data.toDate) meses.add(chaveMes(t.data.toDate())); });
+        const listaMeses = [...meses].sort().reverse().map((m) => [m, rotuloMes(m)]);
+        listaMeses.push(["todos", "Todos os meses"]);
+        opcoesSelect("f-mes", null, listaMeses, filtros.mes);
+
+        opcoesSelect("f-cat", "Todas as categorias", categoriasConhecidas().map((c) => [c, c]), filtros.cat);
+
+        const metodos = new Map();
+        ultimasTransacoes.forEach((t) => {
+          const k = chaveMetodo(t.metodo);
+          if (!metodos.has(k)) metodos.set(k, k === "indefinido" ? "Indefinido" : metodoLabel(k));
+        });
+        opcoesSelect("f-metodo", "Todos os métodos", [...metodos.entries()], filtros.metodo);
+
+        const donos = [...new Set(ultimasTransacoes.map((t) => t.dono).filter(Boolean))];
+        opcoesSelect("f-dono", "Todos", donos.map((d) => [d, d]), filtros.dono);
+
+        const busca = document.getElementById("f-busca");
+        if (busca && busca !== document.activeElement) busca.value = filtros.busca;
+      }
+
+      window.onFiltroChange = function () {
+        filtros = {
+          mes: document.getElementById("f-mes").value,
+          cat: document.getElementById("f-cat").value,
+          metodo: document.getElementById("f-metodo").value,
+          dono: document.getElementById("f-dono").value,
+          busca: document.getElementById("f-busca").value.trim().toLowerCase(),
+        };
+        renderLista();
+      };
+
+      window.limparFiltros = function () {
+        filtros = filtrosPadrao();
+        document.getElementById("f-busca").value = "";
+        atualizarOpcoesFiltros();
+        renderLista();
+      };
+
+      function passaFiltros(t) {
+        if (filtros.mes !== "todos") {
+          if (!t.data || !t.data.toDate || chaveMes(t.data.toDate()) !== filtros.mes) return false;
+        }
+        if (filtros.cat && (t.categoria || "Outros") !== filtros.cat) return false;
+        if (filtros.metodo && chaveMetodo(t.metodo) !== filtros.metodo) return false;
+        if (filtros.dono && t.dono !== filtros.dono) return false;
+        if (filtros.busca && !(t.descricao || "").toLowerCase().includes(filtros.busca)) return false;
+        return true;
+      }
+
+      const LIMITE_LINHAS = 400;
+      function renderLista() {
+        const corpo = document.getElementById("lista-transacoes");
+        if (!corpo || isCompact) return;
+        const lista = ultimasTransacoes.filter(passaFiltros);
+        const soma = lista.reduce((a, t) => a + (Number(t.valor) || 0), 0);
+        const mostradas = lista.slice(0, LIMITE_LINHAS);
+
+        corpo.innerHTML = mostradas.map((t) => (editingId === t.id ? editRowHtml(t) : rowHtml(t))).join("") ||
+          `<tr><td colspan="4" style="text-align:center;color:#8b949e;padding:20px;">Nenhuma transação com esses filtros</td></tr>`;
+
+        document.getElementById("lista-resumo").innerText =
+          `${lista.length} transaç${lista.length === 1 ? "ão" : "ões"} · soma do filtro: R$ ${soma.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}` +
+          (lista.length > LIMITE_LINHAS ? ` · mostrando as ${LIMITE_LINHAS} mais recentes (refine os filtros)` : "");
+      }
+
+      // ── GRÁFICOS DE BARRA: gasto por dia (mês atual) e por mês (ano atual) ──
+      function renderBarCharts(semCredito) {
+        if (isCompact || !document.getElementById("diaChart")) return;
+        const hoje = new Date();
+        const ano = hoje.getFullYear(), mes = hoje.getMonth();
+        const diasNoMes = new Date(ano, mes + 1, 0).getDate();
+        const porDia = Array(diasNoMes).fill(0);
+        const porMes = Array(12).fill(0);
+
+        semCredito.forEach((t) => {
+          if (!t.data || !t.data.toDate) return;
+          const d = t.data.toDate();
+          if (d.getFullYear() !== ano) return;
+          const v = Number(t.valor) || 0;
+          porMes[d.getMonth()] += v;
+          if (d.getMonth() === mes) porDia[d.getDate() - 1] += v;
+        });
+
+        document.getElementById("dia-chart-titulo").innerText = `Gasto por dia — ${MESES_PT[mes]}`;
+        document.getElementById("mes-chart-titulo").innerText = `Gasto por mês — ${ano}`;
+
+        const maxDia = Math.max(...porDia), maxMes = Math.max(...porMes);
+        const idxDia = porDia.indexOf(maxDia), idxMes = porMes.indexOf(maxMes);
+        const brl = (v) => `R$ ${v.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
+        document.getElementById("dia-chart-nota").innerText =
+          maxDia > 0 ? `Dia mais caro: ${String(idxDia + 1).padStart(2, "0")}/${String(mes + 1).padStart(2, "0")} — ${brl(maxDia)}` : "Sem gastos neste mês ainda";
+        document.getElementById("mes-chart-nota").innerText =
+          maxMes > 0 ? `Mês mais caro: ${MESES_PT[idxMes]} — ${brl(maxMes)}` : "Sem gastos neste ano ainda";
+
+        const desenhar = (canvasId, instKey, labels, dados, idxMax) => {
+          const ctx = document.getElementById(canvasId).getContext("2d");
+          if (window[instKey]) window[instKey].destroy();
+          window[instKey] = new Chart(ctx, {
+            type: "bar",
+            data: {
+              labels,
+              datasets: [{
+                data: dados,
+                backgroundColor: dados.map((_, i) => (i === idxMax && dados[i] > 0 ? "#f59e0b" : "rgba(168,85,247,0.55)")),
+                borderRadius: 3,
+              }],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: { display: false },
+                datalabels: { display: false },
+                tooltip: { callbacks: { label: (c) => ` ${brl(c.parsed.y)}` } },
+              },
+              scales: {
+                x: { ticks: { color: "#8b949e", font: { size: 9 }, maxRotation: 0, autoSkip: true }, grid: { display: false } },
+                y: { ticks: { color: "#8b949e", font: { size: 9 }, callback: (v) => (v >= 1000 ? `${v / 1000}k` : v) }, grid: { color: "rgba(255,255,255,0.05)" } },
+              },
+            },
+          });
+        };
+
+        desenhar("diaChart", "chartDiaInst", porDia.map((_, i) => i + 1), porDia, idxDia);
+        desenhar("mesChart", "chartMesInst", MESES_PT.map((m) => m.slice(0, 3)), porMes, idxMes);
+      }
+
       function renderTudo(transacoes) {
         ultimasTransacoes = transacoes;
-        // Métodos "diferidos" (crédito, cartão mãe) não contam nas somas/maior
-        // gasto/últimos 3 meses — só "saem" de fato quando a fatura é paga.
-        // Mas continuam aparecendo normalmente na tabela abaixo.
-        const semCredito = transacoes.filter((t) => !METODOS_DIFERIDOS.includes(t.metodo));
+        // Métodos "diferidos" (crédito, cartão mãe) não contam nas somas/top 3/
+        // gráficos/últimos 3 meses — só "saem" de fato quando a fatura é paga.
+        // Mas continuam aparecendo normalmente na lista de movimentações.
+        const semCredito = transacoes.filter((t) => !ehDiferido(t));
         ultimasSemCredito = semCredito;
         const semCreditoPeriodo = filtrarPorPeriodo(semCredito, periodoFiltro);
 
         let totalGeral = 0;
-        let catTotals = {};
-        let metodoTotals = {};
-        let html = "";
+        const catTotals = {};
+        const metodoTotals = {};
 
-        transacoes.forEach((t, index) => {
-          const valorNum = Number(t.valor) || 0;
-          const m = t.metodo || "indefinido";
-          metodoTotals[m] = (metodoTotals[m] || 0) + valorNum;
-          if (index < 10) {
-            html += editingId === t.id ? editRowHtml(t) : rowHtml(t);
-          }
+        transacoes.forEach((t) => {
+          const k = chaveMetodo(t.metodo);
+          metodoTotals[k] = (metodoTotals[k] || 0) + (Number(t.valor) || 0);
         });
-
         semCreditoPeriodo.forEach((t) => {
           const valorNum = Number(t.valor) || 0;
           const cat = t.categoria || "Outros";
@@ -718,29 +934,38 @@
         });
 
         const rotuloPeriodo = PERIODO_LABEL[periodoFiltro] || "";
-        document.getElementById("periodo-label-1").innerText = rotuloPeriodo;
-        document.getElementById("periodo-label-2").innerText = rotuloPeriodo;
+        ["periodo-label-1", "periodo-label-2", "periodo-label-3"].forEach((id) => {
+          const el = document.getElementById(id);
+          if (el) el.innerText = rotuloPeriodo;
+        });
         const seletor = document.getElementById("periodo-filter");
-        if (seletor.value !== periodoFiltro) seletor.value = periodoFiltro;
+        if (seletor && seletor.value !== periodoFiltro) seletor.value = periodoFiltro;
 
-        if (!Object.keys(catTotals).length) {
-          document.getElementById("top-cat-name").innerText = "SEM DADOS";
-          document.getElementById("top-cat-value").innerText = "R$ 0,00";
-        } else {
-          const topCat = Object.keys(catTotals).reduce((a, b) => (catTotals[a] > catTotals[b] ? a : b));
-          document.getElementById("top-cat-name").innerText = topCat.toUpperCase();
-          document.getElementById("top-cat-value").innerText =
-            `R$ ${catTotals[topCat].toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
-        }
+        // Top 3 categorias do período
+        const brl = (v) => `R$ ${v.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
+        const top = Object.entries(catTotals).sort((a, b) => b[1] - a[1]).slice(0, 3);
+        document.getElementById("top3-list").innerHTML = top.length
+          ? top.map(([cat, val], i) => `
+              <div class="top3-row ${i === 0 ? "top3-first" : ""}">
+                <span class="top3-name"><span class="top3-rank">${i + 1}º</span><span class="top3-dot" style="background:${corPara(cat)}"></span>${cat}</span>
+                <span class="top3-val">${brl(val)}</span>
+              </div>`).join("")
+          : `<div class="top3-vazio">Sem dados</div>`;
 
-        document.getElementById("lista-transacoes").innerHTML =
-          html || `<tr><td colspan="4" style="text-align:center;color:#8b949e;padding:20px;">Nenhuma transação ainda</td></tr>`;
-        document.getElementById("gasto-total").innerText =
-          `R$ ${totalGeral.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
+        // Cartão Mãe (fora das somas, mas com card próprio)
+        const mae = filtrarPorPeriodo(transacoes.filter((t) => normMetodo(t.metodo) === "cartao_mae"), periodoFiltro);
+        const maeTotal = mae.reduce((a, t) => a + (Number(t.valor) || 0), 0);
+        document.getElementById("mae-valor").innerText = brl(maeTotal);
+        document.getElementById("mae-sub").innerText = `${mae.length} compra${mae.length === 1 ? "" : "s"}`;
 
+        document.getElementById("gasto-total").innerText = brl(totalGeral);
+
+        atualizarOpcoesFiltros();
+        renderLista();
         renderMeses(semCredito);
         renderChart(catTotals, totalGeral);
         renderMetodoChart(metodoTotals);
+        renderBarCharts(semCredito);
 
         setTimeout(() => {
           const height = document.getElementById("content-wrapper").offsetHeight;
@@ -821,7 +1046,7 @@
           await signInAnonymously(auth);
         } catch (e) {
           console.error("Erro no login anônimo:", e);
-          document.getElementById("top-cat-name").innerText = "ERRO DE LOGIN";
+          document.getElementById("top3-list").innerHTML = '<div class="top3-vazio">Erro de login</div>';
           return;
         }
 
@@ -834,7 +1059,7 @@
           },
           (err) => {
             console.error("Erro lendo Firestore:", err);
-            document.getElementById("top-cat-name").innerText = "ERRO AO LER";
+            document.getElementById("top3-list").innerHTML = '<div class="top3-vazio">Erro ao ler o banco</div>';
           }
         );
       }

@@ -38,6 +38,15 @@
   </div>
 </div>
 
+<!-- Navegação por dia (some no modo compacto) -->
+<div class="day-nav">
+  <button class="day-btn" onclick="mudarDia(-1)" title="Dia anterior">◀</button>
+  <input type="date" id="dia-input" class="day-input" onchange="irParaDia(this.value)">
+  <button class="day-btn" id="day-next" onclick="mudarDia(1)" title="Próximo dia">▶</button>
+  <button class="day-btn day-today" onclick="irParaHoje()">Hoje</button>
+  <span class="day-info" id="day-info"></span>
+</div>
+
 <!-- Progresso do dia -->
 <div class="progress-row">
   <div class="progress-card diego">
@@ -82,7 +91,7 @@
 <div class="stats-row">
   <div class="stats-inner" id="stats-d">
     <div class="stat-card" style="border-bottom:2px solid var(--green)">
-      <span class="stat-label">Hoje</span><span class="stat-val" style="color:var(--green)" id="d-hoje">0/0</span>
+      <span class="stat-label" id="lbl-d-hoje">Hoje</span><span class="stat-val" style="color:var(--green)" id="d-hoje">0/0</span>
     </div>
     <div class="stat-card" style="border-bottom:2px solid var(--green)">
       <span class="stat-label">Semana</span><span class="stat-val" id="d-sem">0</span>
@@ -96,7 +105,7 @@
   </div>
   <div class="stats-inner" id="stats-b">
     <div class="stat-card" style="border-bottom:2px solid var(--accent)">
-      <span class="stat-label">Hoje</span><span class="stat-val" style="color:var(--accent)" id="b-hoje">0/0</span>
+      <span class="stat-label" id="lbl-b-hoje">Hoje</span><span class="stat-val" style="color:var(--accent)" id="b-hoje">0/0</span>
     </div>
     <div class="stat-card" style="border-bottom:2px solid var(--accent)">
       <span class="stat-label">Semana</span><span class="stat-val" id="b-sem">0</span>

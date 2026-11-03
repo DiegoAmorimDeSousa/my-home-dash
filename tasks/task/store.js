@@ -45,6 +45,7 @@ export function todayStr() {
     const d = new Date();
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
+export function shiftDay(baseStr, days) { return dateStrOffset(baseStr, days); }
 function dateStrOffset(baseStr, days) {
     const [y, m, d] = baseStr.split('-').map(Number);
     const dt = new Date(y, m - 1, d);
@@ -138,20 +139,30 @@ export function removeTask(taskId) {
 }
 
 // ─── LOG DE CONCLUSÃO (por dia, por pessoa) ─────────────────────────────────
-export function isTaskDoneToday(owner, taskId) {
+export function isTaskDone(owner, taskId, dia = todayStr()) {
     const state = load();
-    const dia = state.log[todayStr()];
-    return !!(dia && dia[owner] && dia[owner][taskId]);
+    const d = state.log[dia];
+    return !!(d && d[owner] && d[owner][taskId]);
+}
+export function isTaskDoneToday(owner, taskId) {
+    return isTaskDone(owner, taskId, todayStr());
 }
 
-export function setTaskDone(owner, taskId, done) {
+export function setTaskDone(owner, taskId, done, dia = todayStr()) {
     const state = load();
-    const dia = todayStr();
     if (!state.log[dia]) state.log[dia] = {};
     if (!state.log[dia][owner]) state.log[dia][owner] = {};
     if (done) state.log[dia][owner][taskId] = true;
     else delete state.log[dia][owner][taskId];
     save(state);
+}
+
+// Quantas tarefas da pessoa foram feitas em um dia específico.
+export function countDay(owner, dia = todayStr()) {
+    const state = load();
+    const tasks = state.tasks[owner] || [];
+    const doneMap = (state.log[dia] && state.log[dia][owner]) || {};
+    return { feitas: tasks.filter(t => doneMap[t.id]).length, total: tasks.length };
 }
 
 // ─── BOSS ───────────────────────────────────────────────────────────────────
@@ -258,6 +269,19 @@ export async function applyDamageToBoss(dano) {
     boss.vidaAtual = Math.max(0, boss.vidaAtual - dano);
     save(state);
     return { derrotado: boss.vidaAtual <= 0, boss };
+}
+
+// Desmarcar uma tarefa devolve o dano que ela tinha causado (limitado à vida
+// máxima). Se o boss já está com 0 de vida (derrota em andamento) não revive.
+export async function healBoss(amount) {
+    await ensureBoss();
+    const state = load();
+    const boss = state.boss.current;
+    if (boss.vidaAtual > 0) {
+        boss.vidaAtual = Math.min(boss.vidaMaxima, boss.vidaAtual + amount);
+        save(state);
+    }
+    return boss;
 }
 
 // Chamado pela UI depois da animação de derrota.
