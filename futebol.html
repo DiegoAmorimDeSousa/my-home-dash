@@ -464,6 +464,9 @@
       .btn-filter.acima .cnt { color: #ffb3b0; opacity: 1; }
       .form-nota { flex-basis: 100%; font-size: 0.78rem; color: var(--text-dim); }
       .form-nota:empty { display: none; }
+      .form-titulo { flex-basis: 100%; font-family: "Montserrat", sans-serif; font-weight: 800; color: var(--purple); }
+      .btn-edit { background: none; border: 1px solid var(--border); border-radius: 4px; cursor: pointer; padding: 2px 6px; font-size: 0.75rem; opacity: 0.55; }
+      .btn-edit:hover { opacity: 1; border-color: var(--purple); }
 
       .import-panel {
         background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px;
@@ -576,6 +579,20 @@
         <div class="form-nota" id="novo-time-nota"></div>
       </div>
 
+      <div class="add-time-form full-only" id="edit-time-form" style="display:none">
+        <div class="form-titulo" id="edit-time-titulo">Editar time</div>
+        <input type="text" id="edit-time-logo" class="add-time-input" placeholder="URL do escudo/logo">
+        <input type="text" id="edit-time-pais-nome" class="add-time-input" list="lista-paises" placeholder="País do time (ex: Espanha)" style="max-width:210px">
+        <select id="edit-time-pais" class="add-time-select" onchange="atualizarDivisoesEdicao()">
+          <option value="Brasil">Brasil</option>
+          <option value="Mundo">Mundo</option>
+        </select>
+        <select id="edit-time-divisao" class="add-time-select" onchange="atualizarDivisoesEdicao()"></select>
+        <button class="btn-action" onclick="salvarEdicaoTime()">Salvar</button>
+        <button class="btn-cancel-time" onclick="fecharEdicaoTime()">Cancelar</button>
+        <div class="form-nota" id="edit-time-nota"></div>
+      </div>
+
       <div class="import-panel full-only" id="import-panel" style="display:none">
         <div class="import-titulo">Importar totais do ano</div>
         <div class="import-ajuda">
@@ -611,6 +628,7 @@
               <th>SG</th>
               <th>%</th>
               <th>Últimos Jogos</th>
+              <th></th>
             </tr>
           </thead>
           <tbody id="futebol-body"></tbody>
@@ -697,6 +715,8 @@
       let typePAIS = "Brasil";
       let season = "A";
       let torneioAtual = "brasil";
+      let selecaoPendente = null; // divisão recém-criada, esperando chegar do banco
+      let editandoSlug = null;
       let todosOsTimes = [];
       let todosConfrontos = [];
 
@@ -811,8 +831,12 @@
       function renderFiltros() {
         const el = document.getElementById("filtros-divisoes");
         if (!el) return;
+        if (selecaoPendente && divisoesDe(selecaoPendente.pais).includes(selecaoPendente.divisao) &&
+            contagem(selecaoPendente.pais, selecaoPendente.divisao) > 0) {
+          typePAIS = selecaoPendente.pais; season = selecaoPendente.divisao; selecaoPendente = null;
+        }
         // se a divisão selecionada deixou de existir, volta pra "Todos"
-        if (season !== "Todos" && !divisoesDe(typePAIS).includes(season)) { season = "Todos"; typePAIS = "Todos"; }
+        if (!selecaoPendente && season !== "Todos" && !divisoesDe(typePAIS).includes(season)) { season = "Todos"; typePAIS = "Todos"; }
 
         let html = "";
         ["Brasil", "Mundo"].forEach((pais) => {
@@ -879,6 +903,7 @@
               <td>${t.golsMarcados || 0}</td><td>${t.golsSofridos || 0}</td><td>${t.saldoGols || 0}</td>
               <td style="color:var(--purple);font-weight:700">${pct}%</td>
               <td style="font-size:0.75rem;color:var(--text-dim);font-weight:500;">${t.ultimoPlacar || ""}</td>
+              ${isCompact ? "" : `<td><button class="btn-edit" title="Editar time" onclick="editarTime('${slugify(t.nome)}')">✏️</button></td>`}
             </tr>`;
 
           metrics.forEach((m) => {
@@ -889,7 +914,7 @@
           });
         });
 
-        tbody.innerHTML = html || `<tr><td colspan="13" style="text-align:center;color:var(--text-dim);padding:20px;">Nenhum time cadastrado nessa divisão ainda.</td></tr>`;
+        tbody.innerHTML = html || `<tr><td colspan="14" style="text-align:center;color:var(--text-dim);padding:20px;">Nenhum time cadastrado nessa divisão ainda.</td></tr>`;
         renderDashboard(results);
         sendHeight();
       }
@@ -938,8 +963,12 @@
         const sel = document.getElementById("novo-time-divisao");
         const atual = sel.value;
         const letras = divisoesDe(grupo);
-        sel.innerHTML = letras.map((l) => `<option value="${l}">Divisão ${l} (${contagem(grupo, l)}/${LIMITE_DIVISAO})</option>`).join("");
-        if (letras.includes(atual)) sel.value = atual;
+        const nova = proximaLetra(letras[letras.length - 1]);
+        const todas = letras.includes(nova) ? letras : [...letras, nova];
+        sel.innerHTML = todas.map((l) => letras.includes(l)
+          ? `<option value="${l}">Divisão ${l} (${contagem(grupo, l)}/${LIMITE_DIVISAO})</option>`
+          : `<option value="${l}">+ Nova divisão ${l} (0/${LIMITE_DIVISAO})</option>`).join("");
+        if (todas.includes(atual)) sel.value = atual;
         const escolhida = sel.value;
         const destino = alocarDivisao(grupo, escolhida);
         document.getElementById("novo-time-nota").innerText =
@@ -976,6 +1005,87 @@
         } catch (e) {
           console.error("Erro ao adicionar time:", e);
           alert("Não consegui adicionar. Confere as Regras do Firestore pra coleção 'times'.");
+        }
+      };
+
+      // ── EDITAR TIME (divisão, grupo, país, escudo) ──────────────────────
+      // O nome não é editável: ele é a chave do time no banco e o Apps Script
+      // acha o time pelo nome que vem da notificação.
+      function nomeDoPais(codigo) {
+        const e = Object.entries(PAISES).find(([, c]) => c === codigo);
+        return e ? e[0] : (codigo || "");
+      }
+
+      window.editarTime = function (slug) {
+        const t = todosOsTimes.find((x) => slugify(x.nome) === slug);
+        if (!t) return;
+        editandoSlug = slug;
+        const dl = document.getElementById("lista-paises");
+        if (!dl.children.length) dl.innerHTML = Object.keys(PAISES).map((n) => `<option value="${n}">`).join("");
+        document.getElementById("edit-time-titulo").innerText = `Editar: ${t.nome}`;
+        document.getElementById("edit-time-logo").value = t.logo || "";
+        document.getElementById("edit-time-pais-nome").value = nomeDoPais(t.paisCodigo || "");
+        document.getElementById("edit-time-pais").value = t.pais;
+        atualizarDivisoesEdicao(t.divisao);
+        const painel = document.getElementById("edit-time-form");
+        painel.style.display = "flex";
+        if (painel.scrollIntoView) painel.scrollIntoView({ behavior: "smooth", block: "center" });
+      };
+
+      window.atualizarDivisoesEdicao = function (preferida) {
+        const grupo = document.getElementById("edit-time-pais").value;
+        const sel = document.getElementById("edit-time-divisao");
+        const atual = typeof preferida === "string" ? preferida : sel.value;
+        const letras = divisoesDe(grupo);
+        const nova = proximaLetra(letras[letras.length - 1]);
+        const todas = letras.includes(nova) ? letras : [...letras, nova];
+        sel.innerHTML = todas.map((l) => letras.includes(l)
+          ? `<option value="${l}">Divisão ${l} (${contagem(grupo, l)}/${LIMITE_DIVISAO})</option>`
+          : `<option value="${l}">+ Nova divisão ${l} (0/${LIMITE_DIVISAO})</option>`).join("");
+        sel.value = todas.includes(atual) ? atual : letras[0];
+
+        const t = todosOsTimes.find((x) => slugify(x.nome) === editandoSlug);
+        const mudou = t && (t.pais !== grupo || t.divisao !== sel.value);
+        const n = contagem(grupo, sel.value);
+        document.getElementById("edit-time-nota").innerText =
+          mudou && n >= LIMITE_DIVISAO ? `A Divisão ${sel.value} do ${grupo} já tem ${n}/${LIMITE_DIVISAO} — mover pra lá passa do limite.` : "";
+      };
+
+      window.fecharEdicaoTime = function () {
+        editandoSlug = null;
+        document.getElementById("edit-time-form").style.display = "none";
+      };
+
+      window.salvarEdicaoTime = async function () {
+        const t = todosOsTimes.find((x) => slugify(x.nome) === editandoSlug);
+        if (!t) return;
+        const logo = document.getElementById("edit-time-logo").value.trim();
+        const paisNome = document.getElementById("edit-time-pais-nome").value.trim();
+        const grupo = document.getElementById("edit-time-pais").value;
+        const divisao = document.getElementById("edit-time-divisao").value;
+
+        let codigo = t.paisCodigo || "";
+        if (paisNome) {
+          codigo = resolvePais(paisNome);
+          if (!codigo) { alert("Não reconheci esse país. Usa um da lista ou o código de 2 letras (ex: es, ar, pt)."); return; }
+        } else if (grupo === "Brasil" && !codigo) {
+          codigo = "br";
+        }
+
+        const mudouLugar = t.pais !== grupo || t.divisao !== divisao;
+        if (mudouLugar && contagem(grupo, divisao) >= LIMITE_DIVISAO &&
+            !confirm(`A Divisão ${divisao} do ${grupo} já tem ${contagem(grupo, divisao)}/${LIMITE_DIVISAO}. Mover mesmo assim?`)) return;
+
+        const dados = { logo, pais: grupo, divisao, paisCodigo: codigo, bandeira: codigo ? codigoParaEmoji(codigo) : "" };
+        // mudou de divisão: as setinhas de posição antigas não valem mais
+        if (mudouLugar) Object.assign(dados, { posicaoAtual: 0, posicaoAnterior: 0, tendencia: "igual" });
+
+        try {
+          await updateDoc(doc(db, "times", editandoSlug), dados);
+          fecharEdicaoTime();
+          if (mudouLugar) { selecaoPendente = { pais: grupo, divisao }; renderFiltros(); renderTabela(); }
+        } catch (e) {
+          console.error(e); alert("Não consegui salvar: " + e.message);
         }
       };
 
