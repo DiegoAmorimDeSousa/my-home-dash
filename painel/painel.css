@@ -1,0 +1,331 @@
+:root {
+  --bg: #07090f;
+  --surface: #0d1117;
+  --surface2: #111827;
+  --border: #1e2535;
+  --accent: #a855f7;
+  --green: #00ff88;
+  --red: #ff3d5a;
+  --text: #e2e8f0;
+  --dim: #4a5568;
+  --glow-purple: rgba(168,85,247,0.15);
+  --glow-red: rgba(255,61,90,0.2);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+}
+
+body {
+  font-family: 'Exo 2', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Grid de fundo sutil */
+body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 0;
+  background-image:
+    linear-gradient(rgba(168,85,247,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(168,85,247,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+}
+
+/* ── SCROLLBAR ESTILIZADA (página + modal) ── */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+* { scrollbar-width: thin; scrollbar-color: var(--border) var(--bg); }
+
+.container {
+  position: relative; z-index: 1;
+  max-width: 1800px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+/* ── HEADER ── */
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.logo {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+}
+.logo span { color: var(--accent); }
+
+.header-status {
+  display: flex; gap: 20px; align-items: center;
+}
+.status-pill {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--dim);
+  letter-spacing: 1px;
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+}
+.status-pill.live { color: var(--green); border-color: rgba(0,255,136,0.3); }
+.status-pill.live::before { content: '● '; }
+
+/* ── FILEIRA ÚNICA: 4 colunas (Tarefas+Boss / Financeiro / Valorant / Futebol) ── */
+.dashboard-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  align-items: stretch;
+  flex: 1;
+  min-height: 0;
+}
+
+@media (max-width: 1300px) {
+  .dashboard-row { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 700px) {
+  body { overflow-y: auto; }
+  .container { flex: none; }
+  .dashboard-row { grid-template-columns: 1fr; flex: none; align-items: stretch; }
+  .module { min-height: 380px; }
+}
+
+/* ── MÓDULO GENÉRICO ── */
+.module {
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.module::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent 0%, var(--accent) 50%, transparent 100%);
+  opacity: 0.4;
+}
+
+.module.rpg-module::before {
+  background: linear-gradient(90deg, transparent 0%, var(--red) 50%, transparent 100%);
+}
+
+/* ── CABEÇALHO DO MÓDULO ── */
+.module-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 9px 14px;
+  background: rgba(0,0,0,0.3);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.module-title {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+
+.module-controls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* ── BOTÃO TOGGLE ── */
+.toggle-btn {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.65rem;
+  font-weight: bold;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border: 1px solid var(--red);
+  background: transparent;
+  color: var(--red);
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.toggle-btn:hover { background: var(--glow-red); }
+.toggle-btn.off { border-color: var(--green); color: var(--green); }
+.toggle-btn.off:hover { background: rgba(0,255,136,0.1); }
+
+/* ── IFRAME ── */
+.module-frame {
+  width: 100%;
+  border: none;
+  display: block;
+  flex: 1;
+  min-height: 0;
+}
+
+/* ── PILHA BOSS + TAREFAS (mesma coluna) ── */
+.tarefas-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px;
+  flex: 1;
+  min-height: 0;
+}
+.sub-frame {
+  width: 100%;
+  border: none;
+  display: block;
+  border-radius: 6px;
+  overflow: hidden;
+}
+.boss-frame  { flex: 0 0 150px; }
+.tasks-frame { flex: 1; min-height: 0; }
+
+/* ── BOTÃO EXPANDIR ── */
+.expand-btn {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.7rem;
+  padding: 3px 8px;
+  border: 1px solid var(--accent);
+  background: transparent;
+  color: var(--accent);
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.2s;
+  line-height: 1;
+}
+.expand-btn:hover { background: var(--glow-purple); }
+
+/* ── MODAL DE EXPANSÃO ── */
+.expand-box {
+  background: var(--surface2);
+  border: 1px solid var(--accent);
+  border-radius: 10px;
+  width: min(1800px, 96vw);
+  max-height: 90vh;
+  box-shadow: 0 0 60px var(--glow-purple);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.expand-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.expand-title {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.expand-close {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--dim);
+  border-radius: 4px;
+  width: 26px; height: 26px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+.expand-close:hover { border-color: var(--red); color: var(--red); }
+.expand-body {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 200px;
+}
+.expand-iframe {
+  width: 100%;
+  border: none;
+  display: block;
+  min-height: 400px;
+}
+.expand-iframe + .expand-iframe {
+  border-top: 1px solid var(--border);
+}
+
+/* ── MODAL ── */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 9999;
+  background: rgba(0,0,0,0.9);
+  display: flex; justify-content: center; align-items: center;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.2s;
+  backdrop-filter: blur(4px);
+}
+.modal-overlay.active { opacity: 1; pointer-events: auto; }
+
+.modal-box {
+  background: var(--surface2);
+  border: 1px solid var(--accent);
+  border-radius: 10px;
+  padding: 28px;
+  text-align: center;
+  width: 300px;
+  box-shadow: 0 0 40px var(--glow-purple);
+}
+
+.modal-box h3 {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 1.1rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 6px;
+}
+.modal-box p { font-size: 0.75rem; color: var(--dim); margin-bottom: 16px; }
+
+.modal-box input {
+  width: 100%;
+  padding: 10px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 6px;
+  text-align: center;
+  font-size: 1.2rem;
+  letter-spacing: 6px;
+  font-family: 'Share Tech Mono', monospace;
+  margin-bottom: 14px;
+}
+.modal-box input:focus { border-color: var(--accent); outline: none; }
+
+.modal-buttons { display: flex; gap: 10px; }
+.modal-btn {
+  flex: 1; padding: 10px; border: none; border-radius: 6px;
+  font-family: 'Rajdhani', sans-serif; font-size: 0.85rem; font-weight: 700;
+  letter-spacing: 1px; text-transform: uppercase; cursor: pointer;
+}
+.btn-confirm { background: var(--accent); color: #fff; }
+.btn-cancel  { background: var(--border); color: var(--dim); }

@@ -1,4 +1,7 @@
-import { notifyBossChanged, notifyTasksChanged } from './boss.js';
+// Checklist diário de tarefas (Diego / Beatriz). Concluir tarefa causa dano no
+// boss (ver boss.js). Tudo fica no localStorage — ver store.js.
+import { iniciarFrame, isCompact } from '../../../shared/frame.js';
+import { notifyBossChanged, notifyTasksChanged } from './avisos.js';
 import {
     getOwners, getTasks, addTask, removeTask,
     isTaskDone, setTaskDone, dmgInfoFor, DANO_PRESETS,
@@ -7,10 +10,9 @@ import {
 } from './store.js';
 import { updateProgressBars, updateStats, renderInsights, renderTaskMetrics } from './ui.js';
 
+const { avisarAltura } = iniciarFrame('frame-tarefas');
 function sendHeight() {
-    const frameId = new URLSearchParams(location.search).get('frameId') || 'frame-tarefas';
-    const h = document.body.scrollHeight;
-    window.parent.postMessage({ height: h, id: frameId }, '*');
+    avisarAltura(document.body.scrollHeight);
 }
 
 const OWNER_META = {
@@ -21,7 +23,6 @@ const OWNER_META = {
 // ─── DIA SELECIONADO (navegação pra marcar/desmarcar dias anteriores) ───────
 // null = "seguir o dia de hoje" (assim, se o painel ficar aberto na virada da
 // meia-noite, ele passa pro dia novo sozinho).
-const isCompact = new URLSearchParams(location.search).get('compact') === '1';
 let diaEscolhido = null;
 function diaAtual() { return isCompact ? todayStr() : (diaEscolhido || todayStr()); }
 function fmtDia(d) { const [y, m, dd] = d.split('-'); return `${dd}/${m}`; }
@@ -220,4 +221,7 @@ async function init() {
 }
 
 init();
-export { init };
+
+// Re-checa periodicamente a virada de dia — útil se o painel ficar aberto
+// passando da meia-noite (ex: tablet fixo em casa).
+setInterval(init, 60000);

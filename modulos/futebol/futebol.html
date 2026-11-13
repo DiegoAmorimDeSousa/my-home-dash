@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Módulo de Futebol</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Montserrat:wght@700;800&display=swap"
+      rel="stylesheet"
+    />
+
+    <link rel="stylesheet" href="futebol.css" />
+  </head>
+  <body>
+    <script src="../../shared/compacto.js"></script>
+    <div id="futebol-content">
+      <div class="module-header">
+        <span>⚽ Tabela de Classificação</span>
+      </div>
+
+      <div class="config-panel full-only">
+        <div class="checkbox-grid" id="filter-area"></div>
+      </div>
+
+      <div class="stats-grid full-only" id="cards-area"></div>
+
+      <div class="filter-buttons-container full-only" id="filter-buttons-row">
+        <div id="filtros-divisoes" class="filtros-divisoes"></div>
+        <div class="acoes-topo">
+          <button class="btn-ghost" onclick="toggleAddTimeForm()">+ Adicionar Time</button>
+          <button class="btn-ghost" onclick="toggleImportPanel()">⇪ Importar totais</button>
+        </div>
+      </div>
+
+      <div class="add-time-form full-only" id="add-time-form" style="display:none">
+        <input type="text" id="novo-time-nome" class="add-time-input" placeholder="Nome do time">
+        <input type="text" id="novo-time-logo" class="add-time-input" placeholder="URL do escudo/logo">
+        <input type="text" id="novo-time-pais-nome" class="add-time-input" list="lista-paises" placeholder="País do time (ex: Espanha)" style="max-width:210px">
+        <datalist id="lista-paises"></datalist>
+        <select id="novo-time-pais" class="add-time-select" onchange="atualizarDivisoesForm()">
+          <option value="Brasil">Brasil</option>
+          <option value="Mundo">Mundo</option>
+        </select>
+        <select id="novo-time-divisao" class="add-time-select" onchange="atualizarDivisoesForm()"></select>
+        <button class="btn-action" onclick="adicionarTimeUI()">Adicionar</button>
+        <button class="btn-cancel-time" onclick="toggleAddTimeForm(false)">Cancelar</button>
+        <div class="form-nota" id="novo-time-nota"></div>
+      </div>
+
+      <div class="add-time-form full-only" id="edit-time-form" style="display:none">
+        <div class="form-titulo" id="edit-time-titulo">Editar time</div>
+        <input type="text" id="edit-time-logo" class="add-time-input" placeholder="URL do escudo/logo">
+        <input type="text" id="edit-time-pais-nome" class="add-time-input" list="lista-paises" placeholder="País do time (ex: Espanha)" style="max-width:210px">
+        <select id="edit-time-pais" class="add-time-select" onchange="atualizarDivisoesEdicao()">
+          <option value="Brasil">Brasil</option>
+          <option value="Mundo">Mundo</option>
+        </select>
+        <select id="edit-time-divisao" class="add-time-select" onchange="atualizarDivisoesEdicao()"></select>
+        <button class="btn-action" onclick="salvarEdicaoTime()">Salvar</button>
+        <button class="btn-cancel-time" onclick="fecharEdicaoTime()">Cancelar</button>
+        <div class="form-nota" id="edit-time-nota"></div>
+      </div>
+
+      <div class="import-panel full-only" id="import-panel" style="display:none">
+        <div class="import-titulo">Importar totais do ano</div>
+        <div class="import-ajuda">
+          Cole uma linha por time (pode copiar direto de uma planilha):
+          <b>Nome ; Jogos ; V ; E ; D ; GM ; GS</b>. Pontos, saldo e aproveitamento são calculados sozinhos.
+        </div>
+        <textarea id="import-texto" placeholder="Real Madrid;38;27;6;5;81;32&#10;Barcelona;38;25;8;5;78;35"></textarea>
+        <div class="import-acoes">
+          <select id="import-modo" class="add-time-select">
+            <option value="substituir">Substituir os totais atuais (use o ano inteiro)</option>
+            <option value="somar">Somar aos totais atuais</option>
+          </select>
+          <button class="btn-action" onclick="importarTotaisUI()">Importar</button>
+          <button class="btn-cancel-time" onclick="toggleImportPanel(false)">Fechar</button>
+        </div>
+        <div class="import-resultado" id="import-resultado"></div>
+      </div>
+
+      <div class="card-table">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th></th>
+              <th>Time</th>
+              <th>P</th>
+              <th>J</th>
+              <th>V</th>
+              <th>E</th>
+              <th>D</th>
+              <th>GM</th>
+              <th>GS</th>
+              <th>SG</th>
+              <th>%</th>
+              <th>Últimos Jogos</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="futebol-body"></tbody>
+        </table>
+      </div>
+
+      <div
+        id="bracket-header"
+        style="display:flex; justify-content:space-between; align-items:center; margin-top:40px; margin-bottom:12px; flex-wrap:wrap; gap:10px;"
+      >
+        <div class="module-header" style="margin-bottom: 0">
+          <span id="bracket-titulo">🏆 Mata-Mata — Brasil</span>
+        </div>
+        <div style="display:flex; gap:10px;">
+          <button class="btn-action" style="background:var(--red);" onclick="encerrarTemporadaUI()">
+            Encerrar Temporada
+          </button>
+          <button class="btn-action" onclick="gerarChaveamentoUI()">
+            Gerar Novo Chaveamento
+          </button>
+        </div>
+      </div>
+
+      <div class="torneio-tabs full-only" id="bracket-tabs">
+        <button class="btn-tab active" data-t="brasil" onclick="mudarTorneio('brasil')">Brasil</button>
+        <button class="btn-tab" data-t="mundo" onclick="mudarTorneio('mundo')">Mundo</button>
+        <button class="btn-tab" data-t="geral" onclick="mudarTorneio('geral')">Geral (todos)</button>
+      </div>
+
+      <div class="tournament-wrapper" id="bracket-section">
+        <div class="bracket-side left" id="bracket-left"></div>
+
+        <div class="center-stage">
+          <div id="round-center-final-title" class="round-title-node" style="margin-bottom: -25px">
+            GRANDE FINAL
+          </div>
+          <div id="round-center-final" style="width: 100%"></div>
+          <div id="podium-area"></div>
+        </div>
+
+        <div class="bracket-side right" id="bracket-right"></div>
+      </div>
+
+      <div class="module-header full-only" style="margin-top: 40px;">
+        <span>🏆 Salão dos Campeões</span>
+      </div>
+      <div class="hall-of-fame full-only" id="hall-of-fame">
+        <div style="color:var(--text-dim); font-size:0.85rem;">Nenhuma temporada encerrada ainda.</div>
+      </div>
+    </div>
+
+    <script type="module" src="js/main.js"></script>
+  </body>
+</html>

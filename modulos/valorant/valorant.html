@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard Valorant</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;700&family=Roboto:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="valorant.css" />
+  </head>
+  <body>
+    <script src="../../shared/compacto.js"></script>
+    <div class="container" id="valorant-wrapper">
+      <h1>
+        TABELA DE CLASSIFICAÇÃO - VALORANT VCT
+        <span class="refresh-status">• Atualiza automaticamente</span>
+      </h1>
+
+      <div class="filter-container">
+        <button
+          class="filter-btn active"
+          id="btn-todos"
+          onclick="alterarFiltro('todos')"
+        >
+          Todos
+        </button>
+        <button
+          class="filter-btn"
+          id="btn-AMÉRICAS"
+          onclick="alterarFiltro('AMÉRICAS')"
+        >
+          Américas
+        </button>
+        <button
+          class="filter-btn"
+          id="btn-EMEA"
+          onclick="alterarFiltro('EMEA')"
+        >
+          EMEA
+        </button>
+        <button
+          class="filter-btn"
+          id="btn-PACÍFICO"
+          onclick="alterarFiltro('PACÍFICO')"
+        >
+          Pacífico
+        </button>
+        <button
+          class="filter-btn"
+          id="btn-CHINA"
+          onclick="alterarFiltro('CHINA')"
+        >
+          China
+        </button>
+      </div>
+
+      <div id="loading" class="loading">Sincronizando com a Planilha...</div>
+
+      <div
+        class="table-container"
+        id="tabela-container-div"
+        style="display: none"
+      >
+        <table id="tabela-valorant">
+          <thead>
+            <tr>
+              <th>POS</th>
+              <th style="text-align: left">TIME</th>
+              <th>P</th>
+              <th>V</th>
+              <th>D</th>
+              <th>J</th>
+              <th>MG</th>
+              <th>MP</th>
+              <th>SM</th>
+              <th>TM</th>
+              <th>%</th>
+              <th style="text-align: left">ÚLTIMO JOGO</th>
+              <th>REG</th>
+            </tr>
+          </thead>
+          <tbody id="tabela-corpo"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <script type="module" src="valorant.js"></script>
+  </body>
+</html>

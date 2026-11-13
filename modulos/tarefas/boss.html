@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Boss Battle</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/boss.css">
+</head>
+<body>
+<script src="../../shared/compacto.js"></script>
+
+<div class="loading-overlay" id="loading">
+  <div class="loading-text">LOADING BOSS...</div>
+  <div class="loading-bar-track"><div class="loading-bar-fill"></div></div>
+</div>
+
+<div class="screen-flash" id="screenFlash"></div>
+
+<div class="dead-screen" id="deadScreen">
+  <div class="dead-text" id="deadText">BOSS DERROTADO!</div>
+</div>
+
+<div class="arena">
+  <div class="wall wall-top"></div>
+  <div class="wall wall-bottom"></div>
+  <div class="wall wall-left"></div>
+  <div class="wall wall-right"></div>
+
+  <div class="battle-layout">
+    <!-- Sprite -->
+    <div class="boss-col">
+      <div class="boss-aura" id="bossAura"></div>
+      <img class="boss-sprite" id="bossSprite" src="" alt="Boss">
+      <div class="boss-shadow" id="bossShadow"></div>
+    </div>
+
+    <!-- HUD -->
+    <div class="hud-panel">
+      <div class="hud-room" id="roomName">SALA 1 · CARREGANDO...</div>
+      <div class="hud-name" id="bossName">???</div>
+      <div class="hp-track">
+        <div class="hp-pending" id="hpPending" style="width:0%"></div>
+        <div class="hp-fill"    id="hpFill"    style="width:100%"></div>
+      </div>
+      <div class="hp-row">
+        <span class="hp-current" id="hpCurrent">0</span>
+        <span class="hp-max"     id="hpMax">/ 0 HP</span>
+      </div>
+      <div class="type-row" id="typeBadges"></div>
+      <div class="info-row" id="infoRow"></div>
+    </div>
+  </div>
+</div>
+
+<!-- SALA DE TROFÉUS — só no modo expandido -->
+<div class="trophy-room" id="trophyRoom">
+  <div class="trophy-title">🏆 Sala de Troféus</div>
+  <div class="trophy-grid" id="trophyGrid"></div>
+</div>
+
+<script type="module" src="js/boss.js"></script>
+</body>
+</html>

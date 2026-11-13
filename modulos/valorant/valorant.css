@@ -1,0 +1,201 @@
+:root {
+  --panel-bg: rgba(24, 30, 38, 0.6);
+  --text-color: #ffffff;
+  --accent-color: #ff4655;
+  --border-color: #232d38;
+  --table-hover: #1f2732;
+}
+
+body {
+  font-family: "Roboto", sans-serif;
+  background-color: transparent !important;
+  background: transparent !important;
+  color: var(--text-color);
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.container {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+h1 {
+  font-family: "Oswald", sans-serif;
+  text-transform: uppercase;
+  font-size: 1.8rem;
+  letter-spacing: 2px;
+  margin-top: 0;
+  margin-bottom: 20px;
+  border-left: 5px solid var(--accent-color);
+  padding-left: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.refresh-status {
+  font-size: 0.8rem;
+  font-family: "Roboto", sans-serif;
+  color: #888;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.filter-container {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  padding: 5px 0;
+  flex-wrap: wrap;
+}
+
+.filter-btn {
+  background-color: rgba(24, 30, 38, 0.8);
+  color: #858c9c;
+  border: 1px solid var(--border-color);
+  padding: 8px 16px;
+  font-family: "Oswald", sans-serif;
+  font-size: 0.9rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.filter-btn:hover {
+  background-color: var(--table-hover);
+  color: #ffffff;
+  border-color: #38495f;
+}
+
+.filter-btn.active {
+  background-color: var(--accent-color);
+  color: #ffffff;
+  border-color: var(--accent-color);
+  box-shadow: 0 0 10px rgba(255, 70, 85, 0.4);
+}
+
+.table-container {
+  background-color: var(--panel-bg);
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: center;
+}
+
+th {
+  background-color: rgba(0, 0, 0, 0.3);
+  font-family: "Oswald", sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #a0a5b5;
+  padding: 12px 10px;
+  font-size: 0.9rem;
+  border-bottom: 2px solid var(--border-color);
+}
+
+td {
+  padding: 12px 10px;
+  border-bottom: 1px solid var(--border-color);
+  font-size: 0.85rem;
+}
+
+tr:hover td {
+  background-color: var(--table-hover);
+  transition: background 0.15s ease;
+}
+
+.col-time {
+  text-align: left;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.team-logo {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+
+.region-logo {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  display: block;
+  margin: 0 auto;
+}
+
+/* Alterado de Vermelho para Branco de Destaque */
+.points-cell {
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.positive-sm {
+  color: #00ff87;
+}
+.negative-sm {
+  color: #ff4655;
+}
+
+.ultimo-jogo-cell {
+  text-align: left;
+  font-size: 0.8rem;
+  color: #b3b9c9;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.loading {
+  text-align: center;
+  padding: 40px;
+  font-size: 1.1rem;
+  color: #888;
+}
+
+/* ── MODO COMPACTO (resumo) ── */
+html, body.is-compact { height: 100%; }
+body.is-compact #valorant-wrapper {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+body.is-compact h1 { font-size: 1.05rem; margin-bottom: 10px; flex-shrink: 0; }
+body.is-compact .refresh-status { display: none; }
+body.is-compact .filter-container { display: none; }
+body.is-compact #tabela-container-div {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  border-radius: 8px;
+}
+body.is-compact thead th { position: sticky; top: 0; z-index: 1; }
+body.is-compact th:nth-child(n + 4),
+body.is-compact td:nth-child(n + 4) {
+  display: none;
+}
+body.is-compact th,
+body.is-compact td {
+  padding: 8px 10px;
+}
+
+/* ── SCROLLBAR ESTILIZADA ── */
+body.is-compact #tabela-container-div::-webkit-scrollbar { width: 6px; }
+body.is-compact #tabela-container-div::-webkit-scrollbar-track { background: transparent; }
+body.is-compact #tabela-container-div::-webkit-scrollbar-thumb { background: var(--accent-color); border-radius: 4px; opacity: 0.5; }
+body.is-compact #tabela-container-div { scrollbar-width: thin; scrollbar-color: var(--accent-color) transparent; }
